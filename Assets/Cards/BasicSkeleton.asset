@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3366c4670a0ae4647b363fcdb93a93cc, type: 3}
+  m_Script: {fileID: 11500000, guid: e9cca2c1a6f8b014eb274531453488a1, type: 3}
   m_Name: BasicSkeleton
   m_EditorClassIdentifier: 
   serializationData:
@@ -27,5 +27,10 @@ MonoBehaviour:
   maxHealth: 2
   hasSpecialCondition: 0
   cardName: Basic Skeleton
-  cardDescription: Combine with up to 2 other skeletons on the board to create a
+  cardDescription: combine with up to 2 other skeletons on the board to create a
     skeleton brute or a skeleton Knight
+  manaCost: 4
+  canSelectTarget: 0
+  cardPrefab: {fileID: 8435099163799031644, guid: ba7f1f0f91b17414881cf6a88fd9d920, type: 3}
+  skeletonBrute: {fileID: 11400000, guid: 5f9264c5bda16ea40a233fb6849f0863, type: 2}
+  skeletonKnight: {fileID: 11400000, guid: 5f9264c5bda16ea40a233fb6849f0863, type: 2}

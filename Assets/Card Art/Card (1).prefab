@@ -721,14 +721,17 @@ MonoBehaviour:
   card: {fileID: 0}
   cardImage: {fileID: 5614512435125128330}
   iconImage: {fileID: 196103928727844572}
+  isPlayerCard: 0
   cardName: {fileID: 7044385669495027404}
   cardDescription: {fileID: 7537969929998397991}
   atkText: {fileID: 4210235817561412127}
   healthText: {fileID: 9000067494748816127}
   displayCanvas: {fileID: 0}
+  owner: {fileID: 0}
   originalRot: {x: 0, y: 0, z: 0}
   originalPos: {x: 0, y: 0, z: 0}
   originalParent: {fileID: 0}
   targetViewRot: {x: 0, y: 0, z: 0}
-  targetViewScale: {x: 0, y: 0, z: 0}
+  targetViewScale: {x: 2, y: 2, z: 2}
   positionChange: {x: 0, y: 0, z: 0}
+  rectTransform: {fileID: 0}

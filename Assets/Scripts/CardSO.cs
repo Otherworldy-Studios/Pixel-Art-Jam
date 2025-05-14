@@ -15,16 +15,15 @@ public abstract class CardSO : SerializedScriptableObject
     public int maxHealth;
     public bool hasSpecialCondition;
     public string cardName;
+    [TextArea(3, 10)]
     public string cardDescription;
+    public int manaCost;
+    public bool canSelectTarget;
     
-   
+    public abstract bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner);
+  
 
-    public abstract void DoSpecial();
-    public abstract void DoSpecial(GameObject Owner, int manaCost);
-    public abstract void Attack(GameObject owner, GameObject target);
-    public abstract void TakeDamage(int damage);
 
-   
 }
 
 public enum CardPosition

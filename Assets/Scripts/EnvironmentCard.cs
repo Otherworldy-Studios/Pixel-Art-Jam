@@ -1,25 +1,7 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "EnviromentCard", menuName = "Scriptable Objects/EnviromentCard")]
-public class EnvironmentCard : CardSO
+
+public abstract class EnvironmentCard : CardSO
 {
-    public override void Attack(GameObject owner, GameObject target)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public override void DoSpecial()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public override void DoSpecial(GameObject Owner, int manaCost)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public override void TakeDamage(int damage)
-    {
-        throw new System.NotImplementedException();
-    }
+    public abstract void PassiveEffect(GameObject owner);
 }
