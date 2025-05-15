@@ -13,10 +13,10 @@ public class BasicSkeleton : UndeadCard
     public override bool DoSpecial(PlayerStats Owner,CardInstance instanceOwner = null, CardInstance target = null)
     {
         int skeletonsOnBoard = 0;
-       if(!Owner.isPlayer)
-       {
+        if (!Owner.isPlayer)
+        {
             return false;
-       }
+        }
         foreach (CardInstance card in GameManager.Instance.board)
         {
             if (card.card is BasicSkeleton && card.owner == Owner)

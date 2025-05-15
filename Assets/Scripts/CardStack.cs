@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -15,7 +16,7 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] private int maxDeckCount = 40;
     [SerializeField] private Vector3 stackPosition;
     [SerializeField] private Vector3 stackRotation;
-    [SerializeField] private Transform[] handPositions;
+    public Transform[] handPositions;
     public int OccupiedHandPositions = -1;
     [SerializeField] private Canvas displayCanvas;
     [SerializeField] private bool isPlayerStack;
@@ -100,6 +101,34 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             DrawCard();
         }
         
+    }
+
+    public IEnumerator DrawCards(int amount, float delay)
+    {
+        if (OccupiedHandPositions < 0)
+        {
+            OccupiedHandPositions = 0;
+        }
+        if (playerStats.hand.Count >= maxHandCount)
+        {
+            Debug.LogError("Max hand count reached");
+            yield break;
+        }
+        if (cardsInStack.Count == 0)
+        {
+            Debug.LogError("No cards left in the deck");
+            yield break;
+        }
+        for (int i = 0; i < amount; i++)
+        {
+            if (cardsInStack.Count == 0)
+            {
+                Debug.LogError("No cards left in the deck");
+                yield break;
+            }
+            DrawCard();
+            yield return new WaitForSeconds(delay);
+        }
     }
 
     public void DrawCard()

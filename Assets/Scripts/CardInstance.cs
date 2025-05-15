@@ -39,9 +39,11 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public RectTransform rectTransform;
 
     public bool moving = false;
+    public bool hasDoneSpecial = false;
+    public bool hasDoneAttack = false;
 
     Color originalColor = Color.white;
-
+   bool selectable = true;
 
 
 
@@ -119,32 +121,7 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     }
 
 
-    public bool DoSpecial(PlayerStats Owner, CardInstance target)
-    {
-        if(target == null && card.canSelectTarget)
-        {
-           Debug.LogError("Target is null");
-            return false;
-        }
-        if(Owner == null)
-        {
-            Debug.LogError("Owner is null");
-            return false;
-        }
-        GameManager.Instance.specialSelected = false;
-        return card.DoSpecial(Owner, target, this);
-
-    }
-    public void DoPassive()
-    {
-        if (card is EnvironmentCard envCard)
-        {
-            while (currentPosition == CardPosition.Board)
-            {
-                envCard.PassiveEffect(owner.gameObject);
-            }
-        }
-    }
+  
     public void ApplyStatusEffect(StatusEffects effect, int duration)
     {
         statusEffects.Add(effect, duration);
@@ -172,6 +149,7 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (moving) return;
+        if (!selectable) return;
         if (currentPosition == CardPosition.EnemyHand) return;
         if (currentPosition == CardPosition.Deck) return;
         if (currentPosition == CardPosition.Discard) return;
@@ -193,6 +171,7 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void OnPointerExit(PointerEventData eventData)
     {
         if (moving) return;
+        if(!selectable) return;
         if (currentPosition == CardPosition.EnemyHand) return;
         if (currentPosition == CardPosition.Deck) return;
         if (currentPosition == CardPosition.Discard) return;
@@ -211,12 +190,20 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void OnPointerDown(PointerEventData eventData)
     {
         if (moving) return;
+        if (!selectable) return;
         if (currentPosition == CardPosition.EnemyHand) return;
         if (currentPosition == CardPosition.Deck) return;
         if (currentPosition == CardPosition.Discard) return;
         if (currentPosition == CardPosition.Board && owner.isPlayer)
         {
-            //TODO should give option to do attack or do special but for now return 
+            if(!owner.isMyTurn)
+            {
+                return;
+            }
+            if(hasDoneAttack || hasDoneSpecial)
+            {
+                return;
+            }
             GameManager.Instance.selectedCard = this;
             GameManager.Instance.ShowCardOptions(this);
 
@@ -230,6 +217,10 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         }
         if (currentPosition == CardPosition.PlayerHand)
         {
+            if (!owner.isMyTurn)
+            {
+                return;
+            }
             PlayCard();
         }
 
@@ -237,8 +228,48 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     }
 
 
+    public bool DoSpecial(PlayerStats Owner, CardInstance target)
+    {
+        selectable = false;
+      
+        if (target == null && card.canSelectTarget)
+        {
+            Debug.LogError("Target is null");
+            return false;
+        }
+        if (Owner == null)
+        {
+            Debug.LogError("Owner is null");
+            return false;
+        }
+       
+        GameManager.Instance.specialSelected = false;
+        selectable = true;
+        hasDoneSpecial = card.DoSpecial(Owner, target, this);
+
+        if(hasDoneSpecial)
+        {
+            owner.currentMana -= card.manaCost;
+        }
+        return hasDoneSpecial;
+
+
+    }
+    public void DoPassive()
+    {
+        if (card is EnvironmentCard envCard)
+        {
+            while (currentPosition == CardPosition.Board)
+            {
+                envCard.PassiveEffect(owner.gameObject);
+            }
+        }
+    }
+
     public void Attack(PlayerStats owner, CardInstance target, int modifier = 0)
     {
+       
+        selectable = false;
         int finalDamage = atk + modifier;
         if(target == null)
         {
@@ -250,15 +281,30 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             target.TakeDamage(finalDamage);
             transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 1, 1);
         }
+        owner.currentMana -= 2;
         GameManager.Instance.attackSelected = false;
+        hasDoneAttack = true;
+        selectable = true;
 
+    }
+
+    public void ResetFlags()
+    {
+        hasDoneAttack = false;
+        hasDoneSpecial = false;
     }
     public void TakeDamage(int damage)
     {
+        selectable = false;
+        if (damage > currentHealth)
+        {
+            int overkill = damage - currentHealth;
+            owner.TakeDamage(overkill);
+        }
         currentHealth -= damage;
+        
         if (currentHealth <= 0)
         {
-            currentHealth = 0;
             GameManager.Instance.DiscardCard(this, isPlayerCard);
         }
         else
@@ -266,6 +312,7 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             transform.DOShakeRotation(0.2f, new Vector3(0, 0, 10), 10, 10);
             StartCoroutine(FlashRed());
         }
+        selectable = true;
     }
 
     public void PlayCard()

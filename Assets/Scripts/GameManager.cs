@@ -57,9 +57,9 @@ public class GameManager : Singleton<GameManager>
                 }
                 else
                 {
-                    card.gameObject.transform.parent = playerBoardSide[OccupiedPlayerPositions];
+                    card.gameObject.transform.parent = playerBoardSide[i];
                     card.transform.DOLocalRotate(new Vector3(0, 0, 0), 0.5f);
-                    card.originalParent = playerBoardSide[OccupiedPlayerPositions];
+                    card.originalParent = playerBoardSide[i];
                     card.gameObject.transform.localScale = new Vector3(1, 1, 1);
                     player.hand.Remove(card);
                     if (fromHand)
@@ -90,9 +90,9 @@ public class GameManager : Singleton<GameManager>
                 }
                 else
                 {
-                    card.gameObject.transform.parent = enemyBoardSide[OccupiedEnemyPositions];
+                    card.gameObject.transform.parent = enemyBoardSide[i];
                     card.transform.DOLocalRotate(new Vector3(0, 0, 0), 0.5f);
-                    card.originalParent = enemyBoardSide[OccupiedEnemyPositions];
+                    card.originalParent = enemyBoardSide[i];
                     card.gameObject.transform.localScale = new Vector3(1, 1, 1);
                     //enemy.hand.Remove(card);
                     if (fromHand)
@@ -109,7 +109,7 @@ public class GameManager : Singleton<GameManager>
         }
         board.Add(card);
         card.currentPosition = CardPosition.Board;
-        card.rectTransform.anchoredPosition = Vector3.zero;
+        card.rectTransform.DOAnchorPos3D(Vector3.zero,0.5f);
         card.moving = false;
 
     }
@@ -145,10 +145,6 @@ public class GameManager : Singleton<GameManager>
     }
 
 
-    public void CardClicked(CardInstance card)
-    {
-        ShowCardOptions(card);
-    }
 
     public void ShowCardOptions(CardInstance card)
     {
