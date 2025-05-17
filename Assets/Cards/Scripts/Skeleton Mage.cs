@@ -1,37 +1,16 @@
 using UnityEngine;
-[CreateAssetMenu(fileName = "SkeletonBrute", menuName = "Undead Cards/SkeletonBrute")]
 
-public class SkeletonBrute : UndeadCard
+[CreateAssetMenu(fileName = "SkeletonMage", menuName = "Undead Cards/SkeletonMage")]
+public class SkeletonMage : UndeadCard
 {
     public override bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner)
     {
-        if(target == null)
+        if (GameManager.Instance.OccupiedEnemyPositions == 0)
         {
+            
             return false;
         }
-        if(Owner == null)
-        {
-            return false;
-        }
-        if (Owner.isPlayer)
-        {
-            if(GameManager.Instance.OccupiedEnemyPositions == 0)
-            {
-               instanceOwner.Attack(Owner, null);
-                return true;
-            }
-        }
-        else
-        {
-            if (GameManager.Instance.OccupiedPlayerPositions == 0)
-            {
-                instanceOwner.Attack(Owner, null);
-                return true;
-            }
-        }
-       instanceOwner.TakeDamage(4);
-        Debug.Log($"Skeleton Brute special activated attacking {target}");
-        instanceOwner.Attack(Owner, target);
+        target.ApplyStatusEffect(StatusEffects.LingeringDamage, 3);
         return true;
     }
 
@@ -65,3 +44,4 @@ public class SkeletonBrute : UndeadCard
         throw new System.NotImplementedException();
     }
 }
+

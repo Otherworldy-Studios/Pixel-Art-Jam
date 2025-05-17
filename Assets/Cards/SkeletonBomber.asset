@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb77368291ec72a4f8784a2b0671ccc2, type: 3}
-  m_Name: SkeletonKnight
+  m_Script: {fileID: 11500000, guid: f65dd3b523bd08842afc416a29e25b13, type: 3}
+  m_Name: SkeletonBomber
   m_EditorClassIdentifier: 
   serializationData:
     SerializedFormat: 2
@@ -25,11 +25,13 @@ MonoBehaviour:
   atk: 6
   currentHealth: 0
   maxHealth: 12
-  hasSpecialCondition: 0
-  specialConditions: []
-  cardName: Skeleton Knight
-  cardDescription: Can do a sweep attack that does 4 damage to all enemy cards on
-    board
-  manaCost: 6
+  hasSpecialCondition: 1
+  specialConditions:
+  - condition: 0
+    affectsOtherCards: 0
+  cardName: Skeleton Bomber
+  cardDescription: Explodes on death dealing damage to all enemy cards on board
+  manaCost: 1
   canSelectTarget: 0
+  canTargetAllies: 0
   lingeringDamage: 0

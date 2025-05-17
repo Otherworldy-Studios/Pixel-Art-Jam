@@ -8,7 +8,7 @@ public class SkeletonKnight : UndeadCard
     {
         if(GameManager.Instance.OccupiedEnemyPositions == 0)
         {
-            Debug.Log("Skeleton Knight special failed");
+            
             return false;
         }
         for (int i = 0; i < GameManager.Instance.board.Count; i++)
@@ -21,5 +21,35 @@ public class SkeletonKnight : UndeadCard
         }
       
         return true;
+    }
+
+    public override void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnCardPlayed(PlayerStats owner, CardInstance cardPlayed, CardInstance instanceOwner)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnDamageTaken(PlayerStats owner, CardInstance damaged, CardInstance instanceOwner, int amount)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnDeath(PlayerStats owner, CardInstance instanceOwner, CardInstance deadCard)
+    {
+        
+    }
+
+    public override void OnTurnEnd(PlayerStats owner, CardInstance instanceOwner)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnTurnStart(PlayerStats owner, CardInstance instanceOwner)
+    {
+        throw new System.NotImplementedException();
     }
 }

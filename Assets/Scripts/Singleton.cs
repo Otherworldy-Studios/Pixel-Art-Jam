@@ -4,6 +4,8 @@ using Sirenix.Serialization;
 public class Singleton<T> : SerializedMonoBehaviour where T : SerializedMonoBehaviour
 {
     private static T _instance;
+    public bool preserveBetweenScenes = true;
+
     public static T Instance
     {
         get
@@ -15,7 +17,6 @@ public class Singleton<T> : SerializedMonoBehaviour where T : SerializedMonoBeha
                 {
                     GameObject singletonObject = new GameObject(typeof(T).Name);
                     _instance = singletonObject.AddComponent<T>();
-                    DontDestroyOnLoad(singletonObject);
                 }
             }
             return _instance;
@@ -27,7 +28,11 @@ public class Singleton<T> : SerializedMonoBehaviour where T : SerializedMonoBeha
         if (_instance == null)
         {
             _instance = this as T;
-            DontDestroyOnLoad(gameObject);
+            if (preserveBetweenScenes)
+            {
+               DontDestroyOnLoad(gameObject);
+            }
+              
         }
         else if (_instance != this)
         {

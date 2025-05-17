@@ -1,51 +1,88 @@
 using System.Collections.Generic;
-using Sirenix.Serialization;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
-using DG.Tweening;
+using DG.Tweening; 
 using System.Collections;
+using Sirenix.OdinInspector;
+using System;
 
-public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+
+/// <summary>
+/// Represents a single card instance in the game, handling its state, effects, and interactions.
+/// </summary>
+public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
+    #region Fields and Properties
+
+    // --- Card Data ---
+    [Header("Card Data")]
     public Sprite cardFaceUp;
     public Sprite cardFaceDown;
     public int atk;
     public int currentHealth;
     public int maxHealth;
     public CardPosition currentPosition;
-    [OdinSerialize] public Dictionary<StatusEffects, int> statusEffects;
+    public Dictionary<StatusEffects, int> statusEffects = new();
     public CardSO card;
+    public int damageModifier = 0;
+    public bool modifiedByArmoredZombie = false;
+
+    // --- UI References ---
+    [Header("UI References")]
     public Image cardImage;
     public Image iconImage;
-    public bool isPlayerCard;
     public TMP_Text cardName;
     public TMP_Text cardDescription;
     public TMP_Text atkText;
     public TMP_Text healthText;
-
     public Canvas displayCanvas;
+
+    // --- Ownership & State ---
+    [Header("Ownership & State")]
     public PlayerStats owner;
+    public bool isPlayerCard;
     public bool faceUp => currentPosition == CardPosition.PlayerHand || currentPosition == CardPosition.Board;
 
+    // --- Transform & Animation ---
+    [Header("Transform & Animation")]
     [SerializeField] Vector3 originalRot;
     public Transform originalParent;
-
     [SerializeField] Vector3 targetViewRot;
     [SerializeField] Vector3 targetViewScale;
     [SerializeField] Vector3 positionChange;
-
     public RectTransform rectTransform;
 
+    // --- Flags ---
+    [Header("Flags")]
     public bool moving = false;
     public bool hasDoneSpecial = false;
     public bool hasDoneAttack = false;
+    public bool slowed;
+    public bool paralyzed;
 
-    Color originalColor = Color.white;
-   bool selectable = true;
+    // --- Internal State ---
+    private Color originalColor = Color.white;
+    private bool selectable = true;
 
+    #endregion
 
+    #region Events
+
+    /// <summary>
+    /// Invoked when this card dies.
+    /// </summary>
+    public event Action<CardInstance> OnCardDeath;
+
+    /// <summary>
+    /// Invoked when this card takes damage.
+    /// </summary>
+    public event Action<CardInstance, int> OnCardDamage;
+
+    #endregion
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
@@ -54,10 +91,24 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         rectTransform = GetComponent<RectTransform>();
     }
 
+    private void Update()
+    {
+        FaceUp(faceUp);
+        CheckPositionForInteraction();
+        DoPassive();
+        healthText.text = currentHealth.ToString();
+    }
 
+    #endregion
+
+    #region Initialization
+
+    /// <summary>
+    /// Initializes this card instance with the given card data.
+    /// </summary>
+    /// <param name="card">The card data (CardSO) to initialize from.</param>
     public void Initialize(CardSO card)
     {
-
         atk = card.atk;
         maxHealth = card.maxHealth;
         currentHealth = card.maxHealth;
@@ -67,34 +118,34 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         cardDescription.text = card.cardDescription;
         atkText.text = card.atk.ToString();
         healthText.text = currentHealth.ToString();
-
     }
 
-    public void Update()
-    {
-        FaceUp(faceUp);
-        CheckPositionForInteraction();
-        DoPassive();
-        healthText.text = currentHealth.ToString();
-    }
+    #endregion
 
+    #region UI and Interaction
+
+    /// <summary>
+    /// Checks if the card should be interactable based on its position.
+    /// </summary>
     public void CheckPositionForInteraction()
     {
         if (currentPosition == CardPosition.Deck)
-        {
             SetInteractable(false);
-        }
         else
-        {
             SetInteractable(true);
-        }
     }
 
+    /// <summary>
+    /// Sets whether the card is interactable in the UI.
+    /// </summary>
     public void SetInteractable(bool isInteractable)
     {
         cardImage.raycastTarget = isInteractable;
     }
 
+    /// <summary>
+    /// Sets the card face up or down visually.
+    /// </summary>
     public void FaceUp(bool shouldFaceUp)
     {
         if (shouldFaceUp)
@@ -103,10 +154,8 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             iconImage.enabled = true;
             cardName.enabled = true;
             cardDescription.enabled = true;
-            iconImage.enabled = true;
             atkText.enabled = true;
             healthText.enabled = true;
-
         }
         else
         {
@@ -114,124 +163,332 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             iconImage.enabled = false;
             cardName.enabled = false;
             cardDescription.enabled = false;
-            iconImage.enabled = false;
             atkText.enabled = false;
             healthText.enabled = false;
         }
     }
 
-
-  
-    public void ApplyStatusEffect(StatusEffects effect, int duration)
+    /// <summary>
+    /// Shakes the mana UI to indicate an error (e.g., not enough mana).
+    /// </summary>
+    public void ShakeManaUI()
     {
-        statusEffects.Add(effect, duration);
+        if(owner.manaText == null)
+            return;
+        owner.manaText.gameObject.transform.DOShakeRotation(0.2f, new Vector3(0, 0, 10), 10, 10);
     }
 
+    #endregion
 
+    #region Pointer Event Handlers
+
+    /// <summary>
+    /// Handles pointer enter events for hover effects.
+    /// </summary>
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (moving || !selectable || currentPosition == CardPosition.EnemyHand ||
+            currentPosition == CardPosition.Deck || currentPosition == CardPosition.Discard)
+            return;
+
+        if (currentPosition == CardPosition.Board)
+            Debug.Log($"Hovered over {card.cardName}");
+
+        if (currentPosition == CardPosition.PlayerHand)
+            transform.DOBlendableLocalMoveBy(positionChange, 0.2f);
+
+        transform.DOLocalRotate(targetViewRot, 0.2f);
+        transform.DOScale(targetViewScale, 0.2f);
+        transform.parent = displayCanvas.transform;
+    }
+
+    /// <summary>
+    /// Handles pointer exit events for hover effects.
+    /// </summary>
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (moving || !selectable || currentPosition == CardPosition.EnemyHand ||
+            currentPosition == CardPosition.Deck || currentPosition == CardPosition.Discard)
+            return;
+
+        if (currentPosition == CardPosition.PlayerHand)
+            transform.DOBlendableLocalMoveBy(-positionChange, 0.2f);
+
+        transform.DOLocalRotate(originalRot, 0.2f);
+        transform.DOScale(Vector3.one, 0.2f);
+        transform.parent = originalParent;
+    }
+
+    /// <summary>
+    /// Handles pointer down events for card selection and play.
+    /// </summary>
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (moving || !selectable || currentPosition == CardPosition.EnemyHand ||
+            currentPosition == CardPosition.Deck || currentPosition == CardPosition.Discard)
+            return;
+
+        if (currentPosition == CardPosition.Board && !GameManager.Instance.targetSelectionMode)
+        {
+            if (owner.isPlayer)
+            {
+                if (eventData.button == PointerEventData.InputButton.Right && owner.isMyTurn)
+                {
+                    GameManager.Instance.DiscardCard(this, isPlayerCard);
+                    return;
+                }
+                if (!owner.isMyTurn || hasDoneAttack || hasDoneSpecial)
+                    return;
+                GameManager.Instance.selectedCard = this;
+                GameManager.Instance.ShowCardOptions(this);
+            }
+        }
+        else if (currentPosition == CardPosition.Board)
+        {
+            if (GameManager.Instance.targetSelectionMode)
+            {
+                if(GameManager.Instance.specialSelected && !GameManager.Instance.selectedCard.card.canSelectTarget)
+                {
+                    return;
+                }
+                if (owner.isPlayer && GameManager.Instance.selectedCard.card.canTargetAllies)
+                {
+                    GameManager.Instance.selectedTarget = this;
+                }
+                else if (!owner.isPlayer)
+                {
+                    GameManager.Instance.selectedTarget = this;
+                }
+                else
+                {
+                    Debug.Log("Invalid target selection");
+                    return;
+                }
+            }
+               
+        }
+        if (currentPosition == CardPosition.PlayerHand)
+        {
+            if (!owner.isMyTurn)
+                return;
+            if(eventData.button == PointerEventData.InputButton.Right)
+            {
+                GameManager.Instance.DiscardCard(this, isPlayerCard);
+                return;
+            }
+            PlayCard();
+        }
+    }
+
+    #endregion
+
+    #region Status Effects
+
+    /// <summary>
+    /// Applies a status effect to this card.
+    /// </summary>
+    public void ApplyStatusEffect(StatusEffects effect, int duration)
+    {
+        if (!statusEffects.ContainsKey(effect))
+            statusEffects.Add(effect, duration);
+    }
+
+    /// <summary>
+    /// Decrements the duration of all status effects and removes expired ones.
+    /// </summary>
     public void DecrementStatusEffects()
     {
         List<StatusEffects> effectsToRemove = new List<StatusEffects>();
-        foreach (var effect in statusEffects)
+        // Iterate over a copy of the keys to avoid modifying the collection during enumeration
+        foreach (var key in new List<StatusEffects>(statusEffects.Keys))
         {
-            statusEffects[effect.Key]--;
-            if (statusEffects[effect.Key] <= 0)
-            {
-                effectsToRemove.Add(effect.Key);
-            }
+            statusEffects[key]--;
+            if (statusEffects[key] <= 0)
+                effectsToRemove.Add(key);
         }
 
         foreach (var effect in effectsToRemove)
         {
             statusEffects.Remove(effect);
+            if (effect == StatusEffects.Slow)
+                slowed = false;
+            if (effect == StatusEffects.Paralyze)
+                paralyzed = false;
         }
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    /// <summary>
+    /// Applies the effects of all current status effects.
+    /// </summary>
+    public void DoStatusEffects()
     {
-        if (moving) return;
-        if (!selectable) return;
-        if (currentPosition == CardPosition.EnemyHand) return;
-        if (currentPosition == CardPosition.Deck) return;
-        if (currentPosition == CardPosition.Discard) return;
-        if (currentPosition == CardPosition.Board )
-        {
-            Debug.Log($"Hovered over{card.cardName}");
-        }
-        if (currentPosition == CardPosition.PlayerHand)
-        {
-            transform.DOBlendableLocalMoveBy(positionChange, 0.2f);
-        }
-        transform.DOLocalRotate(targetViewRot, 0.2f);
-        transform.DOScale(targetViewScale, 0.2f);
-        transform.parent = displayCanvas.transform;
-        
+        if (statusEffects == null || statusEffects.Count == 0)
+            return;
 
+        foreach (KeyValuePair<StatusEffects, int> effect in statusEffects)
+        {
+            switch (effect.Key)
+            {
+                case StatusEffects.LingeringDamage:
+                    TakeDamage(card.lingeringDamage);
+                    break;
+                case StatusEffects.Slow:
+                    slowed = true;
+                    break;
+                case StatusEffects.Paralyze:
+                    paralyzed = true;
+                    break;
+                case StatusEffects.Sap:
+                    atk -= 3;
+                    break;
+                default:
+                    break;
+            }
+        }
+        DecrementStatusEffects();
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    #endregion
+
+    #region Card Events and Turn Logic
+
+
+
+    /// <summary>
+    /// Subscribes to card-specific events (e.g., death).
+    /// </summary>
+    public void SubscribeToCardEvents()
     {
-        if (moving) return;
-        if(!selectable) return;
-        if (currentPosition == CardPosition.EnemyHand) return;
-        if (currentPosition == CardPosition.Deck) return;
-        if (currentPosition == CardPosition.Discard) return;
-        if (currentPosition == CardPosition.PlayerHand)
+        if (card.specialConditions.Length > 0)
         {
-           
-            transform.DOBlendableLocalMoveBy(-positionChange, 0.2f);
+            foreach (SpecialCondition specialCondition in card.specialConditions)
+            {
+                if (card is UndeadCard && specialCondition.condition == SpecialConditions.Death)
+                {
+                    if (specialCondition.affectsOtherCards)
+                    {
+                        foreach (CardInstance cardOnBoard in GameManager.Instance.board)
+                        {
+                            if (cardOnBoard.card is UndeadCard)
+                            {
+                                OnCardDeath += OnDeath;
+                            }
+                        }
+                    }
+                    OnCardDeath += OnDeath;
+                }
+                if (specialCondition.condition == SpecialConditions.TurnStart)
+                {
+                    TurnManager.Instance.OnTurnStart += OnTurnStart;
+                    if (specialCondition.affectsOtherCards)
+                    {
+                        foreach (CardInstance cardOnBoard in GameManager.Instance.board)
+                        {
+                            TurnManager.Instance.OnTurnStart += OnTurnStart;
+                        }
+                    }
+                }
+                if (specialCondition.condition == SpecialConditions.DamageTaken)
+                {
+                    OnCardDamage += OnDamageTaken;
+                    if (specialCondition.affectsOtherCards)
+                    {
+                        foreach (CardInstance cardOnBoard in GameManager.Instance.board)
+                        {
+                            OnCardDamage += OnDamageTaken;
+                        }
+                    }
+                }
+                if (specialCondition.condition == SpecialConditions.Played)
+                {
+                    GameManager.Instance.OnCardPlayed += OnCardPlayed;
+                    if (specialCondition.affectsOtherCards)
+                    {
+                        foreach (CardInstance cardOnBoard in GameManager.Instance.board)
+                        {
+                            GameManager.Instance.OnCardPlayed += OnCardPlayed;
+                        }
+                    }
+                }
+            }
         }
-        transform.DOLocalRotate(originalRot, 0.2f);
-        transform.DOScale(Vector3.one, 0.2f);
-        transform.parent = originalParent;
-
-
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+
+    public void UnsubscribeToCardEvents()
     {
-        if (moving) return;
-        if (!selectable) return;
-        if (currentPosition == CardPosition.EnemyHand) return;
-        if (currentPosition == CardPosition.Deck) return;
-        if (currentPosition == CardPosition.Discard) return;
-        if (currentPosition == CardPosition.Board && owner.isPlayer)
+        if (card.specialConditions != null && card.specialConditions.Length > 0)
         {
-            if(!owner.isMyTurn)
+            foreach (SpecialCondition specialCondition in card.specialConditions)
             {
-                return;
-            }
-            if(hasDoneAttack || hasDoneSpecial)
-            {
-                return;
-            }
-            GameManager.Instance.selectedCard = this;
-            GameManager.Instance.ShowCardOptions(this);
-
-        }
-        else if (currentPosition == CardPosition.Board && !owner.isPlayer)
-        {
-            if (GameManager.Instance.targetSelectionMode)
-            {
-                GameManager.Instance.selectedTarget = this;
+                if (card is UndeadCard && specialCondition.condition == SpecialConditions.Death)
+                {
+                    OnCardDeath -= OnDeath;
+                }
+                if (specialCondition.condition == SpecialConditions.TurnStart)
+                {
+                    TurnManager.Instance.OnTurnStart -= OnTurnStart;
+                }
+                if (specialCondition.condition == SpecialConditions.DamageTaken)
+                {
+                    OnCardDamage -= OnDamageTaken;
+                }
+                if (specialCondition.condition == SpecialConditions.Played)
+                {
+                    GameManager.Instance.OnCardPlayed -= OnCardPlayed;
+                }
             }
         }
-        if (currentPosition == CardPosition.PlayerHand)
-        {
-            if (!owner.isMyTurn)
-            {
-                return;
-            }
-            PlayCard();
-        }
-
-
     }
 
+    /// <summary>
+    /// Called when this card dies.
+    /// </summary>
+    public void OnDeath(CardInstance deadCard)
+    {
+        card.OnDeath(owner, this, deadCard);
+    }
+    public void OnTurnStart()
+    {
+        card.OnTurnStart(owner, this);
+    }
+    public void OnDamageTaken(CardInstance damaged, int amount)
+    {
+        card.OnDamageTaken(owner, damaged, this, amount);
+    }
+    private void OnCardPlayed(CardInstance instance)
+    {
+        card.OnCardPlayed(owner, instance, this);
+    }
+    #endregion
 
+    #region Card Actions
+
+    /// <summary>
+    /// Attempts to perform the card's special ability.
+    /// </summary>
+    /// <param name="Owner">The owner of the card.</param>
+    /// <param name="target">The target card instance.</param>
+    /// <returns>True if the special was performed, false otherwise.</returns>
     public bool DoSpecial(PlayerStats Owner, CardInstance target)
     {
         selectable = false;
-      
+        if (owner.currentMana < card.manaCost)
+        {
+            Debug.Log("Not enough mana");
+            ShakeManaUI();
+            return false;
+        }
+        if (slowed)
+        {
+            Debug.Log("Card is slowed");
+            return false;
+        }
+        if (paralyzed)
+        {
+            Debug.Log("Card is paralyzed");
+            return false;
+        }
         if (target == null && card.canSelectTarget)
         {
             Debug.LogError("Target is null");
@@ -242,19 +499,22 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             Debug.LogError("Owner is null");
             return false;
         }
-       
+
         GameManager.Instance.specialSelected = false;
         selectable = true;
         hasDoneSpecial = card.DoSpecial(Owner, target, this);
 
-        if(hasDoneSpecial)
-        {
+        if (hasDoneSpecial)
             owner.currentMana -= card.manaCost;
-        }
+
         return hasDoneSpecial;
-
-
     }
+
+    
+
+    /// <summary>
+    /// Applies the card's passive effect if it is an environment card.
+    /// </summary>
     public void DoPassive()
     {
         if (card is EnvironmentCard envCard)
@@ -266,66 +526,133 @@ public class CardInstance : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         }
     }
 
+    /// <summary>
+    /// Performs an attack on the target card.
+    /// </summary>
+    /// <param name="owner">The owner of the attacking card.</param>
+    /// <param name="target">The target card instance.</param>
+    /// <param name="modifier">Damage modifier.</param>
     public void Attack(PlayerStats owner, CardInstance target, int modifier = 0)
     {
+        if (owner.currentMana < 2)
+        {
+            Debug.Log("Not enough mana");
+            ShakeManaUI();
+            return;
+        }
        
         selectable = false;
         int finalDamage = atk + modifier;
-        if(target == null)
+        
+        if (target == null)
         {
-            Debug.LogError("Target is null");
-            return;
+            if(owner.isPlayer)
+            {
+                if (GameManager.Instance.OccupiedEnemyPositions <= 0)
+                {
+                    TurnManager.Instance.enemy.TakeDamage(finalDamage);
+                }
+            }
+            else
+            {
+                if (GameManager.Instance.OccupiedPlayerPositions <= 0)
+                {
+                    TurnManager.Instance.player.TakeDamage(finalDamage);
+                }
+            }
+          
         }
         if (card is UndeadCard cardSO)
         {
-            target.TakeDamage(finalDamage);
-            transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 1, 1);
+            if(target != null)
+            {
+                target.TakeDamage(finalDamage);
+                transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 1, 1);
+            }
         }
         owner.currentMana -= 2;
         GameManager.Instance.attackSelected = false;
         hasDoneAttack = true;
         selectable = true;
-
     }
 
+    /// <summary>
+    /// Resets the attack and special flags for this card.
+    /// </summary>
     public void ResetFlags()
     {
         hasDoneAttack = false;
         hasDoneSpecial = false;
     }
+
+    /// <summary>
+    /// Applies damage to this card and handles death or damage feedback.
+    /// </summary>
+    /// <param name="damage">Amount of damage to apply.</param>
     public void TakeDamage(int damage)
     {
         selectable = false;
+        damage += damageModifier;
         if (damage > currentHealth)
         {
             int overkill = damage - currentHealth;
             owner.TakeDamage(overkill);
         }
         currentHealth -= damage;
-        
+        OnCardDamage?.Invoke(this, damage);
         if (currentHealth <= 0)
         {
             GameManager.Instance.DiscardCard(this, isPlayerCard);
+            OnCardDeath?.Invoke(this);
         }
-        else
-        {
-            transform.DOShakeRotation(0.2f, new Vector3(0, 0, 10), 10, 10);
-            StartCoroutine(FlashRed());
-        }
+
+       
+        
+        StartCoroutine(FlashRed());
+        
         selectable = true;
     }
 
-    public void PlayCard()
+    public void Heal(int amount)
     {
-        GameManager.Instance.PlayCard(this, isPlayerCard);
+        if (currentHealth + amount > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
+        else
+        {
+            currentHealth += amount;
+        }
     }
 
-    private IEnumerator FlashRed()
+    public void ShakeCard()
+    {
+        transform.DOShakeRotation(0.2f, new Vector3(0, 0, 10), 10, 10);
+    }
+
+    
+
+    /// <summary>
+    /// Plays this card from hand to the board.
+    /// </summary>
+    public void PlayCard()
+    {
+        StartCoroutine(GameManager.Instance.PlayCard(this, isPlayerCard));
+    }
+
+    #endregion
+
+    #region Visual Feedback
+
+    /// <summary>
+    /// Coroutine to briefly flash the card red when damaged.
+    /// </summary>
+    public IEnumerator FlashRed()
     {
         cardImage.color = Color.red;
         yield return new WaitForSeconds(0.2f);
         cardImage.color = originalColor;
-        
     }
 
+    #endregion
 }

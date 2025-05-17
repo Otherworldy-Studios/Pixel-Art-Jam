@@ -25,7 +25,7 @@ public class BasicSkeleton : UndeadCard
             }
         }
 
-        Debug.Log("Skeletons on board: " + skeletonsOnBoard);
+        
         if (skeletonsOnBoard > 1)
         {
             CardInstance cardGenerated = null;
@@ -51,8 +51,7 @@ public class BasicSkeleton : UndeadCard
             {
                 cardGenerated =  GameManager.Instance.InstantiateCard(skeletonKnight, Owner, CardPosition.Board);
             }
-            GameManager.Instance.PlayCard(cardGenerated, Owner.isPlayer, false);
-            
+            GameManager.Instance.StartPlayCardCoroutine(cardGenerated, Owner.isPlayer, false);
 
         }
         else
@@ -64,5 +63,33 @@ public class BasicSkeleton : UndeadCard
         return true;
     }
 
-    
+    public override void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnCardPlayed(PlayerStats owner, CardInstance cardPlayed, CardInstance instanceOwner)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnDamageTaken(PlayerStats owner, CardInstance damaged, CardInstance instanceOwner, int amount)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnDeath(PlayerStats owner, CardInstance instanceOwner, CardInstance deadCard)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnTurnEnd(PlayerStats owner, CardInstance instanceOwner)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnTurnStart(PlayerStats owner, CardInstance instanceOwner)
+    {
+        throw new System.NotImplementedException();
+    }
 }

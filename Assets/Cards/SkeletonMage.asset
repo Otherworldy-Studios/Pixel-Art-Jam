@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb77368291ec72a4f8784a2b0671ccc2, type: 3}
-  m_Name: SkeletonKnight
+  m_Script: {fileID: 11500000, guid: ae18221408754a9478981d98894b1cea, type: 3}
+  m_Name: SkeletonMage
   m_EditorClassIdentifier: 
   serializationData:
     SerializedFormat: 2
@@ -27,9 +27,8 @@ MonoBehaviour:
   maxHealth: 12
   hasSpecialCondition: 0
   specialConditions: []
-  cardName: Skeleton Knight
-  cardDescription: Can do a sweep attack that does 4 damage to all enemy cards on
-    board
+  cardName: Skeleton Mage
+  cardDescription: Shoot firebolt that applies lingering damage on a card for 4 turns
   manaCost: 6
-  canSelectTarget: 0
-  lingeringDamage: 0
+  canSelectTarget: 1
+  lingeringDamage: 3

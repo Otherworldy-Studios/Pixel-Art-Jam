@@ -1,38 +1,34 @@
 using UnityEngine;
-[CreateAssetMenu(fileName = "SkeletonBrute", menuName = "Undead Cards/SkeletonBrute")]
 
-public class SkeletonBrute : UndeadCard
+[CreateAssetMenu(fileName = "RelentlessZombie", menuName = "Undead Cards/RelentlessZombie")]
+public class RelentlessZombie : UndeadCard
 {
+    public int amountToHeal = 3;
     public override bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner)
     {
-        if(target == null)
+        if (!Owner.isPlayer && GameManager.Instance.OccupiedPlayerPositions == 0)
         {
             return false;
         }
-        if(Owner == null)
+        if (Owner.isPlayer && GameManager.Instance.OccupiedEnemyPositions == 0)
         {
             return false;
         }
-        if (Owner.isPlayer)
+        if (target == null)
         {
-            if(GameManager.Instance.OccupiedEnemyPositions == 0)
-            {
-               instanceOwner.Attack(Owner, null);
-                return true;
-            }
+            return false;
         }
-        else
+        if (Owner == null)
         {
-            if (GameManager.Instance.OccupiedPlayerPositions == 0)
-            {
-                instanceOwner.Attack(Owner, null);
-                return true;
-            }
+            return false;
         }
-       instanceOwner.TakeDamage(4);
-        Debug.Log($"Skeleton Brute special activated attacking {target}");
-        instanceOwner.Attack(Owner, target);
-        return true;
+        if(instanceOwner == null)
+        {
+            return false;
+        }
+       target.TakeDamage(amountToHeal);
+       instanceOwner.Heal(amountToHeal);
+       return true;
     }
 
     public override void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed)
@@ -52,7 +48,7 @@ public class SkeletonBrute : UndeadCard
 
     public override void OnDeath(PlayerStats owner, CardInstance instanceOwner, CardInstance deadCard)
     {
-        
+        throw new System.NotImplementedException();
     }
 
     public override void OnTurnEnd(PlayerStats owner, CardInstance instanceOwner)

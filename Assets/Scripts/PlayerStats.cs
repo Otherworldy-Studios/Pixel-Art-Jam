@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using DG.Tweening;
 using Sirenix.Utilities;
 using TMPro;
@@ -31,6 +32,10 @@ public class PlayerStats : MonoBehaviour
     public Camera Camera;
     public Canvas gameCanvas;
 
+    [SerializeField] Transform[] thingsToShake;
+
+    public bool hasDrawn = false;
+
     public void OnEnable()
     {
         currentMana = maxMana;
@@ -54,13 +59,13 @@ public class PlayerStats : MonoBehaviour
         if (currentHealth <= 0)
         {
             Debug.Log("Game Over");
-            //GameManager.Instance.GameOver(isPlayer);
+            GameManager.Instance.GameOver(isPlayer);
         }
     }
 
     public void ShakeScreen()
     {
-        Transform[] thingsToShake = gameCanvas.transform.GetComponentsInChildren<Transform>();
+      
         foreach (Transform thing in thingsToShake)
         {
             if (thing == gameCanvas.transform)

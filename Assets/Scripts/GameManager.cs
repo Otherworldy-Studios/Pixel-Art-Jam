@@ -6,11 +6,13 @@ using Sirenix.OdinInspector;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : Singleton<GameManager>
 {
     public List<CardSO> allCards;
+    public List<CardSO> enemyCards;
     public List<CardInstance> board;
     public Transform[] playerBoardSide;
     public Transform[] enemyBoardSide;
@@ -27,8 +29,10 @@ public class GameManager : Singleton<GameManager>
     public GameObject cardOptionsUI;
     public TMP_Text cardOptionsTitle;
     public TMP_Text cardOptionsDescription;
+    public TMP_Text cardOptionsManaCostText;
     public Button attackButton;
     public Button specialButton;
+    public Button discardButton;
 
     public bool targetSelectionMode = false;
     public bool attackSelected = false;
@@ -37,9 +41,10 @@ public class GameManager : Singleton<GameManager>
     public CardInstance selectedTarget;
 
     public GameObject cardPrefab;
+    public event Action<CardInstance> OnCardPlayed;
 
 
-    public void PlayCard(CardInstance card, bool isPlayer, bool fromHand = true)
+    public IEnumerator PlayCard(CardInstance card, bool isPlayer, bool fromHand = true)
     {
         card.moving = true;
         if (isPlayer)
@@ -47,7 +52,7 @@ public class GameManager : Singleton<GameManager>
             if (OccupiedPlayerPositions >= playerBoardSide.Length)
             {
                 Debug.LogError("No more positions available on the player board");
-                return;
+                yield break;
             }
             for (int i = 0; i < playerBoardSide.Length; i++)
             {
@@ -79,7 +84,7 @@ public class GameManager : Singleton<GameManager>
             if (OccupiedEnemyPositions >= enemyBoardSide.Length)
             {
                 Debug.LogError("No more positions available on the enemy board");
-                return;
+                yield break;
             }
 
             for (int i = 0; i < enemyBoardSide.Length; i++)
@@ -111,15 +116,41 @@ public class GameManager : Singleton<GameManager>
         card.currentPosition = CardPosition.Board;
         card.rectTransform.DOAnchorPos3D(Vector3.zero,0.5f);
         card.moving = false;
+        if (card.card.hasSpecialCondition)
+        {
+            card.SubscribeToCardEvents();
+        }
+        OnCardPlayed?.Invoke(card);
+        yield return null;
+    }
 
+    public void StartPlayCardCoroutine(CardInstance card, bool isPlayer, bool fromHand = true)
+    {
+        StartCoroutine(PlayCard(card,isPlayer,fromHand));
+    }
+
+    public void Update()
+    {
+        if(targetSelectionMode)
+        {
+            if(Input.GetMouseButtonUp(1))
+            {
+                ExitTargetSelection();
+            }
+        }
     }
 
     public void DiscardCard(CardInstance card, bool isPlayer)
     {
+        card.gameObject.transform.localScale = Vector3.one;
+        if (cardOptionsUI.activeSelf)
+        {
+            HideCardOptions();
+        }
         card.moving = true;
         board.Remove(card);
-        
-        
+        card.UnsubscribeToCardEvents();
+
         card.currentPosition = CardPosition.Discard;
         if (isPlayer)
         {
@@ -139,22 +170,40 @@ public class GameManager : Singleton<GameManager>
             enemy.cardsInPlay.Remove(card);
             OccupiedEnemyPositions--;
         }
-        card.gameObject.transform.localScale = new Vector3(1, 1, 1);
+       
         card.rectTransform.anchoredPosition = Vector3.zero;
+        card.gameObject.transform.localScale = Vector3.one;
         card.moving = false;
+
+        if(card.card is ArmoredZombie zombie)
+        {
+            foreach (CardInstance cardInPlay in board)
+            {
+                if (cardInPlay.owner == card.owner && card.modifiedByArmoredZombie)
+                {
+                    cardInPlay.damageModifier += zombie.damageAbsorbed;
+                }
+            }
+        }
     }
 
 
 
     public void ShowCardOptions(CardInstance card)
     {
-       cardOptionsUI.SetActive(true);
+        if(targetSelectionMode)
+        {
+            return;
+        }
+        cardOptionsUI.SetActive(true);
        cardOptionsTitle.text = card.cardName.text + " Selected";
-      // cardOptionsDescription.text = card.cardDescription.text;
-       attackButton.onClick.RemoveAllListeners();
+       cardOptionsManaCostText.text = card.card.manaCost.ToString();
+        // cardOptionsDescription.text = card.cardDescription.text;
+        attackButton.onClick.RemoveAllListeners();
        specialButton.onClick.RemoveAllListeners();
        attackButton.onClick.AddListener(() => SelectAttack(card));
        specialButton.onClick.AddListener(() => SelectSpecial(card));
+       discardButton.onClick.AddListener(() => DiscardCard(card,card.isPlayerCard));
     }
 
     public void HideCardOptions()
@@ -209,6 +258,11 @@ public class GameManager : Singleton<GameManager>
         attackSelected = true;
         specialSelected = false;
         HideCardOptions();
+        if (GameManager.Instance.OccupiedEnemyPositions == 0)
+        {
+           card.Attack(card.owner, null);
+           return;
+        }
         StartCoroutine(EnterTargetSelection(selectedCard, true));
     }
     public void SelectSpecial(CardInstance card)
@@ -218,6 +272,7 @@ public class GameManager : Singleton<GameManager>
         HideCardOptions();
         if (card.card.canSelectTarget)
         {
+          
             StartCoroutine(EnterTargetSelection(selectedCard, false));
         }
         else
@@ -238,6 +293,18 @@ public class GameManager : Singleton<GameManager>
         cardInstance.displayCanvas = displayCanvas;
         cardInstance.Initialize(cardSO);
         return cardInstance;
+    }
+
+    public void GameOver(bool isPlayer)
+    {
+        if (isPlayer)
+        {
+            Debug.Log("Game Over. Player has lost.");
+        }
+        else
+        {
+            SceneCounter.Instance.LoadNextScene();
+        }
     }
 }
 

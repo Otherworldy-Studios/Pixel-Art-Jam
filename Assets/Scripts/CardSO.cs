@@ -14,14 +14,30 @@ public abstract class CardSO : SerializedScriptableObject
     public int currentHealth;
     public int maxHealth;
     public bool hasSpecialCondition;
+    public SpecialCondition[] specialConditions;
     public string cardName;
     [TextArea(3, 10)]
     public string cardDescription;
     public int manaCost;
     public bool canSelectTarget;
+    public bool canTargetAllies;
+    public int lingeringDamage;
     
+
     public abstract bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner);
-  
+
+    public abstract void OnDeath(PlayerStats owner, CardInstance instanceOwner, CardInstance deadCard);
+
+    public abstract void OnTurnStart(PlayerStats owner, CardInstance instanceOwner);
+
+    public abstract void OnTurnEnd(PlayerStats owner, CardInstance instanceOwner);
+
+    public abstract void OnCardPlayed(PlayerStats owner, CardInstance cardPlayed, CardInstance instanceOwner);
+
+    public abstract void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed);
+
+    public abstract void OnDamageTaken(PlayerStats owner, CardInstance damaged, CardInstance instanceOwner, int amount);
+
 
 
 }
@@ -39,7 +55,10 @@ public enum SpecialConditions
 {
     Death,
     DamageTaken,
-
+    Kill,
+    TurnStart,
+    TurnEnd,
+    Played,
 }
 
 public enum StatusEffects
@@ -50,3 +69,11 @@ public enum StatusEffects
     Sap
 }
 
+[System.Serializable]
+public struct SpecialCondition
+{
+    public SpecialConditions condition;
+    public bool affectsOtherCards;
+   // public bool turnStart;
+   // public int duration;
+}

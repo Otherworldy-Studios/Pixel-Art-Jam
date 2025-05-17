@@ -1,21 +1,24 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using Random = UnityEngine.Random;
+
 
 
 public class TurnManager : Singleton<TurnManager>
 {
     public Turn turn;
     [SerializeField] public PlayerStats[] players;
-    [SerializeField] private PlayerStats player;
-    [SerializeField] private PlayerStats enemy;
+    [SerializeField] public PlayerStats player;
+    [SerializeField] public PlayerStats enemy;
     [SerializeField] private GameObject turnMessage;
     [SerializeField] private TMP_Text turnMessageText;
     [SerializeField] private Color playerTurnMessageColor;
     [SerializeField] private Color enemyTurnMessageColor;
-
+    public event Action OnTurnStart;
     public void Start()
     {
         StartGame();
@@ -57,10 +60,15 @@ public class TurnManager : Singleton<TurnManager>
     public void PlayerTurn()
     {
         turn = Turn.Player;
+        player.hasDrawn = false;
+        OnTurnStart?.Invoke();
+        player.currentMana = player.maxMana;
         StartCoroutine(ShowTurnMessage());
         foreach (CardInstance cardOnBoard in player.cardsInPlay)
         {
             cardOnBoard.ResetFlags();
+            cardOnBoard.DoStatusEffects();
+           
         }
         foreach (Transform handPos in enemy.deck.handPositions)
         {
@@ -79,10 +87,13 @@ public class TurnManager : Singleton<TurnManager>
     public IEnumerator EnemyTurn()
     {
         turn = Turn.Enemy;
+        OnTurnStart?.Invoke();
+        enemy.currentMana = enemy.maxMana;
         yield return StartCoroutine(ShowTurnMessage());
         foreach (CardInstance cardOnBoard in enemy.cardsInPlay)
         {
             cardOnBoard.ResetFlags();
+            cardOnBoard.DoStatusEffects();
         }
         foreach (Transform handPos in player.deck.handPositions)
         {
@@ -101,13 +112,13 @@ public class TurnManager : Singleton<TurnManager>
                     Debug.LogError("Card is null");
                     continue;
                 }
-                GameManager.Instance.PlayCard(card, false);
+                StartCoroutine(GameManager.Instance.PlayCard(card, false));
                 yield return new WaitForSeconds(0.5f);
             }
         }
         enemy.hand.Clear();
         yield return new WaitForSeconds(3f);
-        List<CardInstance> cardsToPlay = enemy.cardsInPlay;
+        List<CardInstance> cardsToPlay = new List<CardInstance>(enemy.cardsInPlay);
         foreach (CardInstance card in cardsToPlay)
         {
             if (player.cardsInPlay.Count > 0)
@@ -138,6 +149,16 @@ public class TurnManager : Singleton<TurnManager>
                     Debug.Log($"Special for {card.card.cardName} was successful");
                 }
 
+            }
+            else
+            {
+                if (card == null)
+                {
+                    Debug.LogError("Card is null");
+                    continue;
+                }
+                card.Attack(enemy, null);
+                yield return new WaitForSeconds(1f);
             }
            
          

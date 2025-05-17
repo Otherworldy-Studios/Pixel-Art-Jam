@@ -1,38 +1,11 @@
 using UnityEngine;
-[CreateAssetMenu(fileName = "SkeletonBrute", menuName = "Undead Cards/SkeletonBrute")]
 
-public class SkeletonBrute : UndeadCard
+[CreateAssetMenu(fileName = "SkeletonBomber", menuName = "Undead Cards/SkeletonBomber")]
+public class SkeletonBomber : UndeadCard
 {
     public override bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner)
     {
-        if(target == null)
-        {
-            return false;
-        }
-        if(Owner == null)
-        {
-            return false;
-        }
-        if (Owner.isPlayer)
-        {
-            if(GameManager.Instance.OccupiedEnemyPositions == 0)
-            {
-               instanceOwner.Attack(Owner, null);
-                return true;
-            }
-        }
-        else
-        {
-            if (GameManager.Instance.OccupiedPlayerPositions == 0)
-            {
-                instanceOwner.Attack(Owner, null);
-                return true;
-            }
-        }
-       instanceOwner.TakeDamage(4);
-        Debug.Log($"Skeleton Brute special activated attacking {target}");
-        instanceOwner.Attack(Owner, target);
-        return true;
+        return false;
     }
 
     public override void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed)
@@ -52,7 +25,19 @@ public class SkeletonBrute : UndeadCard
 
     public override void OnDeath(PlayerStats owner, CardInstance instanceOwner, CardInstance deadCard)
     {
-        
+        if(deadCard == instanceOwner)
+        {
+            for (int i = 0; i < GameManager.Instance.board.Count; i++)
+            {
+                if (GameManager.Instance.board[i].owner == owner)
+                {
+                    continue;
+                }
+                GameManager.Instance.board[i].TakeDamage(8);
+            }
+            Debug.Log("Skeleton Bomber special triggered");
+        }
+       
     }
 
     public override void OnTurnEnd(PlayerStats owner, CardInstance instanceOwner)

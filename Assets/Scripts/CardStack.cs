@@ -34,18 +34,20 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         for (int i = 0; i < maxDeckCount; i++)
         {
-            int roll = Random.Range(0, GameManager.Instance.allCards.Count);
-            cardsInStack[i].Initialize(GameManager.Instance.allCards[roll]);
-           
+         
             if (playerStats.isPlayer)
             {
+                int roll = Random.Range(0, GameManager.Instance.allCards.Count);
+                cardsInStack[i].Initialize(GameManager.Instance.allCards[roll]);
                 cardsInStack[i].isPlayerCard = true;
                 cardsInStack[i].gameObject.name = $"Player {GameManager.Instance.allCards[roll]} {i}";
             }
             else
             {
+                int roll = Random.Range(0, GameManager.Instance.enemyCards.Count);
+                cardsInStack[i].Initialize(GameManager.Instance.enemyCards[roll]);
                 cardsInStack[i].isPlayerCard = false;
-                cardsInStack[i].gameObject.name = $"Enemy {GameManager.Instance.allCards[roll]}  + i";
+                cardsInStack[i].gameObject.name = $"Enemy {GameManager.Instance.enemyCards[roll]}  + i";
             }
 
 
@@ -81,9 +83,10 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             OccupiedHandPositions = 0;
         }
-        if (playerStats.hand.Count >= maxHandCount)
+        if (playerStats.hand.Count > maxHandCount)
         {
             Debug.LogError("Max hand count reached");
+            
             return;
         }
         if (cardsInStack.Count == 0)
@@ -103,13 +106,38 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         
     }
 
+    public void DrawCardOnClick()
+    {
+        if (OccupiedHandPositions < 0)
+        {
+            OccupiedHandPositions = 0;
+        }
+        if (playerStats.hand.Count > maxHandCount)
+        {
+            Debug.LogError("Max hand count reached");
+            return;
+        }
+        if(playerStats.hasDrawn)
+        {
+            Debug.LogError("You have already drawn a card this turn");
+            return;
+        }
+        if (cardsInStack.Count == 0)
+        {
+            Debug.LogError("No cards left in the deck");
+            return;
+        }
+        playerStats.hasDrawn = true;
+        DrawCard();
+    }
+
     public IEnumerator DrawCards(int amount, float delay)
     {
         if (OccupiedHandPositions < 0)
         {
             OccupiedHandPositions = 0;
         }
-        if (playerStats.hand.Count >= maxHandCount)
+        if (playerStats.hand.Count > maxHandCount)
         {
             Debug.LogError("Max hand count reached");
             yield break;
@@ -170,7 +198,7 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             return;
         }
-        transform.DOScale(targetViewScale, 0.2f);
+        //transform.DOScale(targetViewScale, 0.2f);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -183,15 +211,22 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             return;
         }
-        transform.DOLocalRotate(Vector3.zero, 0.2f);
-        transform.DOScale(Vector3.one, 0.2f);
+      //  transform.DOLocalRotate(Vector3.zero, 0.2f);
+       // transform.DOScale(Vector3.one, 0.2f);
     }
     public void OnPointerDown(PointerEventData eventData)
     {
         if (cardPosition == CardPosition.Deck)
         {
-            DrawCards(1);
+            DrawCardOnClick();
             return;
+        }
+    }
+    public void Update()
+    {
+        foreach (CardInstance card in cardsInStack)
+        {
+            card.gameObject.transform.localScale = Vector3.one;
         }
     }
 

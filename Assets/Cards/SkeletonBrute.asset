@@ -22,11 +22,14 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   icon: {fileID: -887606814011112106, guid: 6491e4f5d3532af4e80398b2de4ca90f, type: 3}
-  atk: 4
+  atk: 6
   currentHealth: 0
-  maxHealth: 10
+  maxHealth: 12
   hasSpecialCondition: 0
+  specialConditions: []
   cardName: Skeleton Brute
   cardDescription: can sacrifice 4 health to do extra damage
-  manaCost: 0
+  manaCost: 1
   canSelectTarget: 1
+  canTargetAllies: 0
+  lingeringDamage: 0

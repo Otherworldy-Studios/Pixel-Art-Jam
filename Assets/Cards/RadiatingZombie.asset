@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb77368291ec72a4f8784a2b0671ccc2, type: 3}
-  m_Name: SkeletonKnight
+  m_Script: {fileID: 11500000, guid: d30952abbd7d1c247a52e0d395659020, type: 3}
+  m_Name: RadiatingZombie
   m_EditorClassIdentifier: 
   serializationData:
     SerializedFormat: 2
@@ -25,11 +25,14 @@ MonoBehaviour:
   atk: 6
   currentHealth: 0
   maxHealth: 12
-  hasSpecialCondition: 0
-  specialConditions: []
-  cardName: Skeleton Knight
-  cardDescription: Can do a sweep attack that does 4 damage to all enemy cards on
-    board
-  manaCost: 6
+  hasSpecialCondition: 1
+  specialConditions:
+  - condition: 3
+    affectsOtherCards: 0
+  cardName: Radiating Zombie
+  cardDescription: While on board deals 1 damage to every enemy card on board per
+    turn
+  manaCost: 1
   canSelectTarget: 0
+  canTargetAllies: 0
   lingeringDamage: 0
