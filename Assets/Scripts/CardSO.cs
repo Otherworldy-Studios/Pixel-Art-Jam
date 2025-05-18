@@ -18,14 +18,10 @@ public abstract class CardSO : SerializedScriptableObject
     public string cardName;
     [TextArea(3, 10)]
     public string cardDescription;
-    [TextArea(3, 10)]
-    public string specialMessageText;
     public int manaCost;
     public bool canSelectTarget;
     public bool canTargetAllies;
-    public bool canOnlyTargetAllies;
     public int lingeringDamage;
-    public Sprite[] cardEffect;
     
 
     public abstract bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner);
@@ -70,9 +66,7 @@ public enum StatusEffects
     LingeringDamage,
     Slow,
     Paralyze,
-    Sap,
-    Invulnerable,
-    Bolstered,
+    Sap
 }
 
 [System.Serializable]

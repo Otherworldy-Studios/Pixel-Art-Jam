@@ -36,10 +36,8 @@ public class SkeletonBomber : UndeadCard
                 GameManager.Instance.board[i].TakeDamage(8);
             }
             Debug.Log("Skeleton Bomber special triggered");
-            specialMessageText = $"{cardName} explodes dealing 8 damage to all enemies";
-            GameManager.Instance.EnqueueActionMessage(specialMessageText);
         }
-      
+       
     }
 
     public override void OnTurnEnd(PlayerStats owner, CardInstance instanceOwner)

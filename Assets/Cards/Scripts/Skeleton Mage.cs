@@ -5,24 +5,12 @@ public class SkeletonMage : UndeadCard
 {
     public override bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner)
     {
-        if (Owner.isPlayer)
+        if (GameManager.Instance.OccupiedEnemyPositions == 0)
         {
-            if (GameManager.Instance.OccupiedPlayerPositions == 0)
-            {
-                return false;
-            }
+            
+            return false;
         }
-        else
-        {
-            if (GameManager.Instance.OccupiedEnemyPositions == 0)
-            {
-                return false;
-            }
-        }
-
         target.ApplyStatusEffect(StatusEffects.LingeringDamage, 3);
-        specialMessageText = $"{cardName} applies lingering damage to {target.card.cardName} for 3 turns";
-       // instanceOwner.PlayEffect(cardEffect,target.gameObject);
         return true;
     }
 

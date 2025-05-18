@@ -7,7 +7,6 @@ using DG.Tweening;
 using System.Collections;
 using Sirenix.OdinInspector;
 using System;
-using JetBrains.Annotations;
 
 
 /// <summary>
@@ -54,7 +53,6 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     [SerializeField] Vector3 targetViewScale;
     [SerializeField] Vector3 positionChange;
     public RectTransform rectTransform;
-    public Image cardEffect;
 
     // --- Flags ---
     [Header("Flags")]
@@ -62,9 +60,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     public bool hasDoneSpecial = false;
     public bool hasDoneAttack = false;
     public bool slowed;
-    public bool isParalyzed;
-    public bool isPossessing = false;
-    public bool bolstered = false;
+    public bool paralyzed;
 
     // --- Internal State ---
     private Color originalColor = Color.white;
@@ -101,7 +97,6 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         CheckPositionForInteraction();
         DoPassive();
         healthText.text = currentHealth.ToString();
-        atkText.text = atk.ToString();
     }
 
     #endregion
@@ -170,7 +165,6 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             cardDescription.enabled = false;
             atkText.enabled = false;
             healthText.enabled = false;
-            cardEffect.enabled = false;
         }
     }
 
@@ -198,7 +192,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             return;
 
         if (currentPosition == CardPosition.Board)
-         //   Debug.Log($"Hovered over {card.cardName}");
+            Debug.Log($"Hovered over {card.cardName}");
 
         if (currentPosition == CardPosition.PlayerHand)
             transform.DOBlendableLocalMoveBy(positionChange, 0.2f);
@@ -243,7 +237,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                     GameManager.Instance.DiscardCard(this, isPlayerCard);
                     return;
                 }
-                if (!owner.isMyTurn || hasDoneAttack || hasDoneSpecial || isParalyzed)
+                if (!owner.isMyTurn || hasDoneAttack || hasDoneSpecial)
                     return;
                 GameManager.Instance.selectedCard = this;
                 GameManager.Instance.ShowCardOptions(this);
@@ -296,24 +290,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     public void ApplyStatusEffect(StatusEffects effect, int duration)
     {
         if (!statusEffects.ContainsKey(effect))
-        {
             statusEffects.Add(effect, duration);
-        }
-        
-
-        if(effect == StatusEffects.Slow)
-        {
-            slowed = true;
-        }
-        if (effect == StatusEffects.Paralyze)
-        {
-            isParalyzed = true;
-        }
-        if (effect == StatusEffects.Bolstered)
-        {
-            bolstered = true;
-            atk += 3;
-        }
     }
 
     /// <summary>
@@ -334,19 +311,9 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         {
             statusEffects.Remove(effect);
             if (effect == StatusEffects.Slow)
-            {
                 slowed = false;
-            }
             if (effect == StatusEffects.Paralyze)
-            {
-                isParalyzed = false;
-            }  
-            if (effect == StatusEffects.Bolstered)
-            {
-                bolstered = false;
-                atk = card.atk;
-            }
-               
+                paralyzed = false;
         }
     }
 
@@ -369,7 +336,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                     slowed = true;
                     break;
                 case StatusEffects.Paralyze:
-                    isParalyzed = true;
+                    paralyzed = true;
                     break;
                 case StatusEffects.Sap:
                     atk -= 3;
@@ -517,7 +484,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             Debug.Log("Card is slowed");
             return false;
         }
-        if (isParalyzed)
+        if (paralyzed)
         {
             Debug.Log("Card is paralyzed");
             return false;
@@ -532,11 +499,10 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             Debug.LogError("Owner is null");
             return false;
         }
-        GameManager.Instance.EnqueueActionMessage(card.specialMessageText);
+
         GameManager.Instance.specialSelected = false;
         selectable = true;
         hasDoneSpecial = card.DoSpecial(Owner, target, this);
-       
 
         if (hasDoneSpecial)
             owner.currentMana -= card.manaCost;
@@ -577,7 +543,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
        
         selectable = false;
         int finalDamage = atk + modifier;
-        GameManager.Instance.EnqueueActionMessage($"{card.cardName} attacks {target.card.cardName} for {finalDamage} damage");
+        
         if (target == null)
         {
             if(owner.isPlayer)
@@ -639,8 +605,10 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             GameManager.Instance.DiscardCard(this, isPlayerCard);
             OnCardDeath?.Invoke(this);
         }
+
+       
         
-        StartCoroutine(CardFlash(Color.red));
+        StartCoroutine(FlashRed());
         
         selectable = true;
     }
@@ -655,7 +623,6 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         {
             currentHealth += amount;
         }
-        StartCoroutine(CardFlash(Color.green));
     }
 
     public void ShakeCard()
@@ -680,38 +647,12 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     /// <summary>
     /// Coroutine to briefly flash the card red when damaged.
     /// </summary>
-    public IEnumerator CardFlash(Color color)
+    public IEnumerator FlashRed()
     {
-        cardImage.color = color;
+        cardImage.color = Color.red;
         yield return new WaitForSeconds(0.2f);
         cardImage.color = originalColor;
     }
 
-
-   public IEnumerator PlayEffect(Sprite[] animationSprites)
-   {
-        cardEffect.gameObject.SetActive(true);
-        cardEffect.sprite = animationSprites[0];
-        for (int i = 0; i < animationSprites.Length; i++)
-        {
-            cardEffect.sprite = animationSprites[i];
-            yield return new WaitForSeconds(0.1f);
-        }
-        Debug.Log("Effect finished");
-        cardEffect.gameObject.SetActive(false);
-   }
-
-    public IEnumerator PlayEffect(Sprite[] animationSprites, GameObject target)
-    {
-        cardEffect.gameObject.SetActive(true);
-        cardEffect.sprite = animationSprites[0];
-        cardEffect.transform.DOMove(target.transform.position, 0.2f);
-        for (int i = 0; i < animationSprites.Length; i++)
-        {
-            cardEffect.sprite = animationSprites[i];
-            yield return new WaitForSeconds(0.1f);
-        }
-        cardEffect.gameObject.SetActive(false);
-    }
     #endregion
 }

@@ -19,7 +19,7 @@ public class SkeletonKnight : UndeadCard
             }
             GameManager.Instance.board[i].TakeDamage(4);
         }
-        specialMessageText = $"{cardName} does a sweep attack";
+      
         return true;
     }
 

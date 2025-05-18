@@ -21,7 +21,7 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  icon: {fileID: 21300000, guid: d7d784439db381a45958e6f1a6fa9ebc, type: 3}
+  icon: {fileID: 0}
   atk: 6
   currentHealth: 0
   maxHealth: 12
@@ -31,5 +31,4 @@ MonoBehaviour:
   cardDescription: Shoot firebolt that applies lingering damage on a card for 4 turns
   manaCost: 6
   canSelectTarget: 1
-  canTargetAllies: 0
   lingeringDamage: 3

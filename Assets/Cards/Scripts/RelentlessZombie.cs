@@ -28,8 +28,7 @@ public class RelentlessZombie : UndeadCard
         }
        target.TakeDamage(amountToHeal);
        instanceOwner.Heal(amountToHeal);
-       specialMessageText = $"{cardName} drains {amountToHeal} health from {target.card.cardName}";
-        return true;
+       return true;
     }
 
     public override void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed)

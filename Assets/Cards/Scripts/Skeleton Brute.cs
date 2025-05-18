@@ -30,7 +30,7 @@ public class SkeletonBrute : UndeadCard
             }
         }
        instanceOwner.TakeDamage(4);
-        specialMessageText = $"{cardName} attacks recklessly";
+        Debug.Log($"Skeleton Brute special activated attacking {target}");
         instanceOwner.Attack(Owner, target);
         return true;
     }

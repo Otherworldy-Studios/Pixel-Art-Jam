@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
-using Sirenix.OdinInspector.Editor.TypeSearch;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -118,31 +117,13 @@ public class TurnManager : Singleton<TurnManager>
             }
         }
         enemy.hand.Clear();
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(3f);
         List<CardInstance> cardsToPlay = new List<CardInstance>(enemy.cardsInPlay);
         foreach (CardInstance card in cardsToPlay)
         {
-            if (player.cardsInPlay.Count > 0 )
+            if (player.cardsInPlay.Count > 0)
             {
-                CardInstance target = null;
-                if (card.card.canTargetAllies)
-                {
-                    if (card.card.canOnlyTargetAllies)
-                    {
-                        target = enemy.cardsInPlay[Random.Range(0, enemy.cardsInPlay.Count)];
-                    }
-                    else
-                    {
-                        List<CardInstance> targets = new List<CardInstance>(player.cardsInPlay);
-                        targets.AddRange(enemy.cardsInPlay);
-                        target = targets[Random.Range(0, targets.Count)];
-                    }
-                }
-                else
-                {
-                  target = player.cardsInPlay[Random.Range(0, player.cardsInPlay.Count)];
-                }
-                
+                CardInstance target = player.cardsInPlay[Random.Range(0, player.cardsInPlay.Count)];
                 if(card == null)
                 {
                     Debug.LogError("Card is null");
@@ -164,7 +145,7 @@ public class TurnManager : Singleton<TurnManager>
                 }
                 else
                 {
-                    yield return new WaitForSeconds(2f);
+                    yield return new WaitForSeconds(1f);
                     Debug.Log($"Special for {card.card.cardName} was successful");
                 }
 

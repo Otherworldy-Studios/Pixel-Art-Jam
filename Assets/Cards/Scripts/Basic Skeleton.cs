@@ -12,7 +12,6 @@ public class BasicSkeleton : UndeadCard
 
     public override bool DoSpecial(PlayerStats Owner,CardInstance instanceOwner = null, CardInstance target = null)
     {
-        
         int skeletonsOnBoard = 0;
         if (!Owner.isPlayer)
         {
@@ -46,12 +45,11 @@ public class BasicSkeleton : UndeadCard
             if (skeletonsOnBoard == 2)
             {
                 cardGenerated = GameManager.Instance.InstantiateCard(skeletonBrute, Owner, CardPosition.Board);
-                specialMessageText = $"Combining 2 skeletons to create a Skeleton Brute";
+
             }
             else if (skeletonsOnBoard == 3)
             {
                 cardGenerated =  GameManager.Instance.InstantiateCard(skeletonKnight, Owner, CardPosition.Board);
-                specialMessageText = $"Combining 3 skeletons to create a skeleton knight";
             }
             GameManager.Instance.StartPlayCardCoroutine(cardGenerated, Owner.isPlayer, false);
 
@@ -62,7 +60,6 @@ public class BasicSkeleton : UndeadCard
             return false;
             //TODO card shake, show ui and play sound
         }
-       
         return true;
     }
 

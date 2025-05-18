@@ -21,7 +21,7 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  icon: {fileID: 21300000, guid: 058915f6b32157c4e99be760e18f7d21, type: 3}
+  icon: {fileID: 0}
   atk: 6
   currentHealth: 0
   maxHealth: 12
