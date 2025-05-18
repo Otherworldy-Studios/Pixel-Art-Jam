@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c90ee37d6556242805a17b8eee9566, type: 3}
+  m_Name: Banshee
+  m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
+  icon: {fileID: 21300000, guid: 49741ec5b68c97f44a8bf24e42f9ce0b, type: 3}
+  atk: 6
+  currentHealth: 0
+  maxHealth: 12
+  hasSpecialCondition: 0
+  specialConditions: []
+  cardName: Banshee
+  cardDescription: Can unleash a cry that applies paralyze an enemy card
+  specialMessageText: 
+  manaCost: 0
+  canSelectTarget: 1
+  canTargetAllies: 0
+  lingeringDamage: 0

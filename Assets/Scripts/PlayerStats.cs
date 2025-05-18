@@ -36,6 +36,7 @@ public class PlayerStats : MonoBehaviour
 
     public bool hasDrawn = false;
 
+    public string playerName;
     public void OnEnable()
     {
         currentMana = maxMana;

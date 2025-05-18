@@ -21,7 +21,7 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 586e2ded77e2b4443bb4d4586d474326, type: 3}
   atk: 6
   currentHealth: 0
   maxHealth: 12
@@ -31,6 +31,7 @@ MonoBehaviour:
     affectsOtherCards: 0
   cardName: Skeleton Bomber
   cardDescription: Explodes on death dealing damage to all enemy cards on board
+  specialMessageText: 
   manaCost: 1
   canSelectTarget: 0
   canTargetAllies: 0

@@ -30,7 +30,7 @@ public class ArmoredZombie : UndeadCard
 
             }
         }
-
+       
 
 
     }
@@ -39,7 +39,9 @@ public class ArmoredZombie : UndeadCard
     {
         if (damaged.owner == owner && damaged != instanceOwner && damaged.card is not ArmoredZombie)
         {
+            GameManager.Instance.EnqueueActionMessage(specialMessageText);
             instanceOwner.TakeDamage(damageAbsorbed);
+            specialMessageText = $"{cardName} shields allies";
         }
     }
 

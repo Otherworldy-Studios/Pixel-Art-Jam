@@ -3,15 +3,28 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "AcidZombie", menuName = "Undead Cards/AcidZombie")]
 public class AcidZombie : UndeadCard
 {
+    
     public override bool DoSpecial(PlayerStats Owner, CardInstance target, CardInstance instanceOwner)
     {
-        if (GameManager.Instance.OccupiedEnemyPositions == 0)
+        if (Owner.isPlayer)
         {
-            return false;
+            if (GameManager.Instance.OccupiedPlayerPositions == 0)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (GameManager.Instance.OccupiedEnemyPositions == 0)
+            {
+                return false;
+            }
         }
         target.ApplyStatusEffect(StatusEffects.LingeringDamage, 6);
+        specialMessageText = $"{cardName} applies lingering damage to {target.card.cardName}";
         return true;
     }
+    
 
     public override void OnCardDiscarded(PlayerStats owner, CardInstance cardPlayed)
     {
