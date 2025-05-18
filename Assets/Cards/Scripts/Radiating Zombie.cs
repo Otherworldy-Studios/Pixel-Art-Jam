@@ -35,22 +35,27 @@ public class RadiatingZombie : UndeadCard
 
     public override void OnTurnStart(PlayerStats owner, CardInstance instanceOwner)
     {
-        Debug.Log("Radiating Zombie special activated");
+        
         if (owner.isPlayer)
         {
             if (GameManager.Instance.OccupiedEnemyPositions == 0)
             {
                 TurnManager.Instance.enemy.TakeDamage(1);
+                specialMessageText = $"Player's radiating zombie deals direct damage";
             }
+            specialMessageText = $"Player's radiating zombie deals damage to all enemy cards";
         }
         else
         {
             if (GameManager.Instance.OccupiedPlayerPositions == 0)
             {
                 TurnManager.Instance.player.TakeDamage(1);
+                specialMessageText = $"Enemy's radiating zombie deal direct damage";
             }
+            specialMessageText = $"Enemy's radiating zombie deals damage to all player cards";
         }
-
+        GameManager.Instance.EnqueueActionMessage(specialMessageText);
+        //instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect));
         for (int i = 0; i < GameManager.Instance.board.Count; i++)
         {
             if (GameManager.Instance.board[i].owner == owner)
@@ -61,6 +66,8 @@ public class RadiatingZombie : UndeadCard
           
         }
 
+      
        
+
     }
 }

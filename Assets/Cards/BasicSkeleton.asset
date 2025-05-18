@@ -21,7 +21,7 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  icon: {fileID: -2728182229497241710, guid: be49bca2618eb424295577bd49147d8d, type: 3}
+  icon: {fileID: 21300000, guid: 95192688b8ce83a45b0e7cdab21ca9e4, type: 3}
   atk: 6
   currentHealth: 0
   maxHealth: 12
@@ -32,6 +32,7 @@ MonoBehaviour:
     skeleton brute or a skeleton Knight
   manaCost: 4
   canSelectTarget: 0
+  canTargetAllies: 0
   lingeringDamage: 0
   cardPrefab: {fileID: 8435099163799031644, guid: ba7f1f0f91b17414881cf6a88fd9d920, type: 3}
   skeletonBrute: {fileID: 11400000, guid: 5f9264c5bda16ea40a233fb6849f0863, type: 2}

@@ -21,7 +21,7 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 893906cafca0a08418f8f3d6b52e328f, type: 3}
   atk: 6
   currentHealth: 0
   maxHealth: 12
@@ -32,7 +32,14 @@ MonoBehaviour:
   cardName: Radiating Zombie
   cardDescription: While on board deals 1 damage to every enemy card on board per
     turn
+  specialMessageText: Player's radiating zombie deals damage to all enemy cards
   manaCost: 1
   canSelectTarget: 0
   canTargetAllies: 0
+  canOnlyTargetAllies: 0
   lingeringDamage: 0
+  cardEffect:
+  - {fileID: -9035432842485066582, guid: 88681456bebdb6449a78cd071875379f, type: 3}
+  - {fileID: 8796838981856108175, guid: 88681456bebdb6449a78cd071875379f, type: 3}
+  - {fileID: -7969027134406758764, guid: 88681456bebdb6449a78cd071875379f, type: 3}
+  - {fileID: -4406908369515200361, guid: 88681456bebdb6449a78cd071875379f, type: 3}
