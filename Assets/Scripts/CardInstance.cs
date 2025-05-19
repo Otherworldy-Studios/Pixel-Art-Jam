@@ -222,7 +222,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
 
         transform.DOLocalRotate(targetViewRot, 0.2f);
         transform.DOScale(targetViewScale, 0.2f);
-        transform.parent = displayCanvas.transform;
+        transform.SetParent(displayCanvas.transform);
     }
 
     /// <summary>
@@ -245,7 +245,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
 
         transform.DOLocalRotate(originalRot, 0.2f);
         transform.DOScale(Vector3.one, 0.2f);
-        transform.parent = originalParent;
+        transform.SetParent(originalParent);
     }
 
     /// <summary>
@@ -315,6 +315,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                 if(GameManager.Instance.playerCards.Contains(card))
                 {
                     GameManager.Instance.playerCards.Remove(card);
+                    SceneCounter.Instance.PlayerCards.Remove(card);
                     winCanvas.UpdateCards();
                 }
                 return;
@@ -324,6 +325,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                 if (!GameManager.Instance.playerCards.Contains(card))
                 {
                     GameManager.Instance.playerCards.Add(card);
+                    SceneCounter.Instance.PlayerCards.Add(card);
                     winCanvas.UpdateCards();
                 }
                 return;
@@ -337,6 +339,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                 if (!GameManager.Instance.playerCards.Contains(card))
                 {
                     GameManager.Instance.playerCards.Add(card);
+                    SceneCounter.Instance.PlayerCards.Add(card);
                     GameManager.Instance.allCards.Add(card);
                     winCanvas.cardsGained.Remove(this);
                     winCanvas.allCardsInCanvas.Remove(this);
@@ -354,6 +357,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                 if (!GameManager.Instance.playerCards.Contains(card))
                 {
                     GameManager.Instance.playerCards.Remove(card);
+                    SceneCounter.Instance.PlayerCards.Remove(card);
                     winCanvas.currentDeck.Remove(this);
                     winCanvas.allCardsInCanvas.Remove(this);
                     winCanvas.UpdateCards();

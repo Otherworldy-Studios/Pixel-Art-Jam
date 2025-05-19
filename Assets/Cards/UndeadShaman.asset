@@ -35,4 +35,4 @@ MonoBehaviour:
   canTargetAllies: 1
   canOnlyTargetAllies: 0
   lingeringDamage: 0
-  cardEffect: {fileID: 0}
+  cardEffect: []

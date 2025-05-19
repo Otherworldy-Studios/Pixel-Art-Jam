@@ -76,6 +76,11 @@ public class GameManager : Singleton<GameManager>
     protected override void Awake()
     {
         base.Awake();
+        
+    }
+
+    private void Start()
+    {
         enemyCards = SceneCounter.Instance.sceneCount switch
         {
             1 => new List<CardSO>(SceneCounter.Instance.Enemy1Cards),
@@ -84,6 +89,8 @@ public class GameManager : Singleton<GameManager>
             4 => new List<CardSO>(SceneCounter.Instance.Enemy4Cards),
             _ => throw new ArgumentOutOfRangeException(),
         };
+
+        playerCards = new List<CardSO>(SceneCounter.Instance.PlayerCards);
     }
     #endregion
     #region Card Play & Board Management
@@ -110,7 +117,7 @@ public class GameManager : Singleton<GameManager>
                 if (playerBoardSide[i].childCount != 0)
                     continue;
 
-                card.gameObject.transform.parent = playerBoardSide[i];
+                card.gameObject.transform.SetParent(playerBoardSide[i]);
                 card.transform.DOLocalRotate(new Vector3(0, 0, 0), 0.5f);
                 card.originalParent = playerBoardSide[i];
                 card.gameObject.transform.localScale = Vector3.one;
@@ -134,7 +141,7 @@ public class GameManager : Singleton<GameManager>
                 if (enemyBoardSide[i].childCount != 0)
                     continue;
 
-                card.gameObject.transform.parent = enemyBoardSide[i];
+                card.gameObject.transform.SetParent(enemyBoardSide[i]);
                 card.transform.DOLocalRotate(new Vector3(0, 0, 0), 0.5f);
                 card.originalParent = enemyBoardSide[i];
                 card.gameObject.transform.localScale = Vector3.one;

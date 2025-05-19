@@ -10,6 +10,8 @@ public class SceneCounter : Singleton<SceneCounter>
     public List<CardSO> Enemy3Cards;
     public List<CardSO> Enemy4Cards;
 
+    public List<CardSO> PlayerCards;
+
     public void LoadNextScene()
     {
       
