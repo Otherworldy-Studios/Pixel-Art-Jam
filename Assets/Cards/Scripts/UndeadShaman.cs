@@ -21,6 +21,7 @@ public class UndeadShaman : UndeadCard
         }
         target.ApplyStatusEffect(StatusEffects.Bolstered, 2);
         specialMessageText = $"{cardName} bolsters {target.card.cardName} for 2 turns";
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect, target.gameObject));
         return true;
     }
 

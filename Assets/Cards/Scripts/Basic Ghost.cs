@@ -10,7 +10,7 @@ public class BasicGhost : UndeadCard
        {
             TurnManager.Instance.enemy.TakeDamage(specialDamage);
             specialMessageText = $"Ghost deals direct damage to enemy";
-        }
+       }
        else
        {
            TurnManager.Instance.player.TakeDamage(specialDamage);

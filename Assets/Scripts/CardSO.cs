@@ -52,7 +52,10 @@ public enum CardPosition
     PlayerHand,
     EnemyHand,
     Board,
-    Discard
+    Discard,
+    Store,
+    CanAddToDeck,
+    StoreDeck,
 }
 
 public enum SpecialConditions

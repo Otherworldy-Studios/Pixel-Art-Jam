@@ -55,7 +55,7 @@ public class RadiatingZombie : UndeadCard
             specialMessageText = $"Enemy's radiating zombie deals damage to all player cards";
         }
         GameManager.Instance.EnqueueActionMessage(specialMessageText);
-        //instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect));
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect));
         for (int i = 0; i < GameManager.Instance.board.Count; i++)
         {
             if (GameManager.Instance.board[i].owner == owner)

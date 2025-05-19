@@ -10,6 +10,7 @@ public class Poltergeist : UndeadCard
         cardBeingPossesed = target.card;
         instanceOwner.isPossessing = true;
         instanceOwner.Initialize(cardBeingPossesed);
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect));
         return true;
     }
 

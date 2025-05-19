@@ -29,7 +29,7 @@ public class SkeletonBrute : UndeadCard
                 return true;
             }
         }
-       instanceOwner.TakeDamage(4);
+        instanceOwner.TakeDamage(4);
         specialMessageText = $"{cardName} attacks recklessly";
         instanceOwner.Attack(Owner, target);
         return true;

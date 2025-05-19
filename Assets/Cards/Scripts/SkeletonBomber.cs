@@ -27,6 +27,7 @@ public class SkeletonBomber : UndeadCard
     {
         if(deadCard == instanceOwner)
         {
+            instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect));
             for (int i = 0; i < GameManager.Instance.board.Count; i++)
             {
                 if (GameManager.Instance.board[i].owner == owner)
@@ -38,6 +39,7 @@ public class SkeletonBomber : UndeadCard
             Debug.Log("Skeleton Bomber special triggered");
             specialMessageText = $"{cardName} explodes dealing 8 damage to all enemies";
             GameManager.Instance.EnqueueActionMessage(specialMessageText);
+            
         }
       
     }

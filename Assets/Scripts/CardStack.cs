@@ -37,10 +37,10 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
          
             if (playerStats.isPlayer)
             {
-                int roll = Random.Range(0, GameManager.Instance.allCards.Count);
-                cardsInStack[i].Initialize(GameManager.Instance.allCards[roll]);
+                int roll = Random.Range(0, GameManager.Instance.playerCards.Count);
+                cardsInStack[i].Initialize(GameManager.Instance.playerCards[roll]);
                 cardsInStack[i].isPlayerCard = true;
-                cardsInStack[i].gameObject.name = $"Player {GameManager.Instance.allCards[roll]} {i}";
+                cardsInStack[i].gameObject.name = $"Player {GameManager.Instance.playerCards[roll]} {i}";
             }
             else
             {
@@ -186,6 +186,8 @@ public class CardStack : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
       
     }
+
+    
 
 
     public void OnPointerEnter(PointerEventData eventData)

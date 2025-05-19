@@ -29,7 +29,17 @@ MonoBehaviour:
   specialConditions: []
   cardName: Skeleton Mage
   cardDescription: Shoot firebolt that applies lingering damage on a card for 4 turns
+  specialMessageText: Skeleton Mage applies lingering damage to Radiating Zombie
+    for 3 turns
   manaCost: 6
   canSelectTarget: 1
   canTargetAllies: 0
+  canOnlyTargetAllies: 0
   lingeringDamage: 3
+  cardEffect:
+  - {fileID: 2863092185112587588, guid: cda07fe44051be348a578c3f830f2c3b, type: 3}
+  - {fileID: -4462460447601448438, guid: cda07fe44051be348a578c3f830f2c3b, type: 3}
+  - {fileID: -7120082388407844033, guid: cda07fe44051be348a578c3f830f2c3b, type: 3}
+  - {fileID: -8390030163010929573, guid: cda07fe44051be348a578c3f830f2c3b, type: 3}
+  - {fileID: 211677321140733822, guid: cda07fe44051be348a578c3f830f2c3b, type: 3}
+  - {fileID: 2394111599070139849, guid: cda07fe44051be348a578c3f830f2c3b, type: 3}

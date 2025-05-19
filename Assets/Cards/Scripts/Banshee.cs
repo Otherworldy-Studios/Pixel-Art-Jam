@@ -21,6 +21,7 @@ public class Banshee : UndeadCard
         }
         target.ApplyStatusEffect(StatusEffects.Paralyze, 3);
         specialMessageText = $"{cardName} paralyzes {target.card.cardName} for 3 turns";
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect));
         return true;
     }
 

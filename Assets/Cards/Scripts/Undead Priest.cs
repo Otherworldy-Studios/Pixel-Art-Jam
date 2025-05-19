@@ -21,6 +21,7 @@ public class UndeadPriest : UndeadCard
             }
         }
         specialMessageText = "Undead Priest heals " + target.cardName + " for " + healAmount.ToString() + " health.";
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect, target.gameObject));
         target.Heal(healAmount);
         return true;
     }

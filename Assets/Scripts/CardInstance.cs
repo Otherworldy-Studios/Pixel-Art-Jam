@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
-using DG.Tweening; 
+using DG.Tweening;
 using System.Collections;
 using Sirenix.OdinInspector;
 using System;
@@ -39,12 +39,13 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     public TMP_Text atkText;
     public TMP_Text healthText;
     public Canvas displayCanvas;
+    public WinCanvas winCanvas;
 
     // --- Ownership & State ---
     [Header("Ownership & State")]
     public PlayerStats owner;
     public bool isPlayerCard;
-    public bool faceUp => currentPosition == CardPosition.PlayerHand || currentPosition == CardPosition.Board;
+    public bool faceUp => currentPosition == CardPosition.PlayerHand || currentPosition == CardPosition.Board || currentPosition == CardPosition.Store || currentPosition == CardPosition.CanAddToDeck || currentPosition == CardPosition.StoreDeck;
 
     // --- Transform & Animation ---
     [Header("Transform & Animation")]
@@ -93,6 +94,13 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         originalRot = transform.localRotation.eulerAngles;
         originalParent = transform.parent;
         rectTransform = GetComponent<RectTransform>();
+        displayCanvas = GameObject.Find("DisplayCanvas").GetComponent<Canvas>();
+        if(currentPosition == CardPosition.Store || currentPosition == CardPosition.StoreDeck || currentPosition == CardPosition.CanAddToDeck )
+        {
+            winCanvas = GetComponentInParent<WinCanvas>();
+        }
+           
+       
     }
 
     private void Update()
@@ -179,7 +187,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     /// </summary>
     public void ShakeManaUI()
     {
-        if(owner.manaText == null)
+        if (owner.manaText == null)
             return;
         owner.manaText.gameObject.transform.DOShakeRotation(0.2f, new Vector3(0, 0, 10), 10, 10);
     }
@@ -198,10 +206,19 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             return;
 
         if (currentPosition == CardPosition.Board)
-         //   Debug.Log($"Hovered over {card.cardName}");
+        {
+            //   Debug.Log($"Hovered over {card.cardName}");
+        }
 
         if (currentPosition == CardPosition.PlayerHand)
+        {
             transform.DOBlendableLocalMoveBy(positionChange, 0.2f);
+        }
+
+        if(currentPosition == CardPosition.Store)
+        {
+            winCanvas.CardHover(true);
+        }
 
         transform.DOLocalRotate(targetViewRot, 0.2f);
         transform.DOScale(targetViewScale, 0.2f);
@@ -219,6 +236,12 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
 
         if (currentPosition == CardPosition.PlayerHand)
             transform.DOBlendableLocalMoveBy(-positionChange, 0.2f);
+
+        if (currentPosition == CardPosition.Store)
+        {
+            winCanvas.CardHover(true);
+        }
+
 
         transform.DOLocalRotate(originalRot, 0.2f);
         transform.DOScale(Vector3.one, 0.2f);
@@ -253,7 +276,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         {
             if (GameManager.Instance.targetSelectionMode)
             {
-                if(GameManager.Instance.specialSelected && !GameManager.Instance.selectedCard.card.canSelectTarget)
+                if (GameManager.Instance.specialSelected && !GameManager.Instance.selectedCard.card.canSelectTarget)
                 {
                     return;
                 }
@@ -271,18 +294,73 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
                     return;
                 }
             }
-               
+
         }
         if (currentPosition == CardPosition.PlayerHand)
         {
             if (!owner.isMyTurn)
                 return;
-            if(eventData.button == PointerEventData.InputButton.Right)
+            if (eventData.button == PointerEventData.InputButton.Right)
             {
                 GameManager.Instance.DiscardCard(this, isPlayerCard);
                 return;
             }
             PlayCard();
+        }
+
+        if(currentPosition == CardPosition.CanAddToDeck)
+        {
+            if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                if(GameManager.Instance.playerCards.Contains(card))
+                {
+                    GameManager.Instance.playerCards.Remove(card);
+                    winCanvas.UpdateCards();
+                }
+                return;
+            }
+            else if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                if (!GameManager.Instance.playerCards.Contains(card))
+                {
+                    GameManager.Instance.playerCards.Add(card);
+                    winCanvas.UpdateCards();
+                }
+                return;
+            }
+        }
+
+        if(currentPosition == CardPosition.Store)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                if (!GameManager.Instance.playerCards.Contains(card))
+                {
+                    GameManager.Instance.playerCards.Add(card);
+                    GameManager.Instance.allCards.Add(card);
+                    winCanvas.cardsGained.Remove(this);
+                    winCanvas.allCardsInCanvas.Remove(this);
+                    winCanvas.UpdateCards();
+                    Destroy(gameObject);
+                }
+                return;
+            }
+        }
+
+        if (currentPosition == CardPosition.StoreDeck)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                if (!GameManager.Instance.playerCards.Contains(card))
+                {
+                    GameManager.Instance.playerCards.Remove(card);
+                    winCanvas.currentDeck.Remove(this);
+                    winCanvas.allCardsInCanvas.Remove(this);
+                    winCanvas.UpdateCards();
+                    Destroy(this.gameObject);
+                }
+                return;
+            }
         }
     }
 
@@ -299,9 +377,9 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         {
             statusEffects.Add(effect, duration);
         }
-        
 
-        if(effect == StatusEffects.Slow)
+
+        if (effect == StatusEffects.Slow)
         {
             slowed = true;
         }
@@ -340,13 +418,13 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             if (effect == StatusEffects.Paralyze)
             {
                 isParalyzed = false;
-            }  
+            }
             if (effect == StatusEffects.Bolstered)
             {
                 bolstered = false;
                 atk = card.atk;
             }
-               
+
         }
     }
 
@@ -536,7 +614,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         GameManager.Instance.specialSelected = false;
         selectable = true;
         hasDoneSpecial = card.DoSpecial(Owner, target, this);
-       
+
 
         if (hasDoneSpecial)
             owner.currentMana -= card.manaCost;
@@ -544,7 +622,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         return hasDoneSpecial;
     }
 
-    
+
 
     /// <summary>
     /// Applies the card's passive effect if it is an environment card.
@@ -574,31 +652,37 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             ShakeManaUI();
             return;
         }
-       
+
         selectable = false;
         int finalDamage = atk + modifier;
-        GameManager.Instance.EnqueueActionMessage($"{card.cardName} attacks {target.card.cardName} for {finalDamage} damage");
+        if (target != null)
+        {
+            GameManager.Instance.EnqueueActionMessage($"{card.cardName} attacks {target.card.cardName} for {finalDamage} damage");
+        }
         if (target == null)
         {
-            if(owner.isPlayer)
+            if (owner.isPlayer)
             {
                 if (GameManager.Instance.OccupiedEnemyPositions <= 0)
                 {
                     TurnManager.Instance.enemy.TakeDamage(finalDamage);
+                    GameManager.Instance.EnqueueActionMessage($"Player attacks enemy for {finalDamage} damage");
                 }
+
             }
             else
             {
                 if (GameManager.Instance.OccupiedPlayerPositions <= 0)
                 {
                     TurnManager.Instance.player.TakeDamage(finalDamage);
+                    GameManager.Instance.EnqueueActionMessage($"Enemy attacks player for {finalDamage} damage");
                 }
             }
-          
+
         }
         if (card is UndeadCard cardSO)
         {
-            if(target != null)
+            if (target != null)
             {
                 target.TakeDamage(finalDamage);
                 transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 1, 1);
@@ -639,9 +723,9 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
             GameManager.Instance.DiscardCard(this, isPlayerCard);
             OnCardDeath?.Invoke(this);
         }
-        
+
         StartCoroutine(CardFlash(Color.red));
-        
+
         selectable = true;
     }
 
@@ -663,7 +747,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         transform.DOShakeRotation(0.2f, new Vector3(0, 0, 10), 10, 10);
     }
 
-    
+
 
     /// <summary>
     /// Plays this card from hand to the board.
@@ -688,8 +772,13 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
     }
 
 
-   public IEnumerator PlayEffect(Sprite[] animationSprites)
-   {
+    public IEnumerator PlayEffect(Sprite[] animationSprites)
+    {
+        if (animationSprites.Length == 0)
+        {
+            Debug.LogError("No animation sprites provided");
+            yield break;
+        }
         cardEffect.gameObject.SetActive(true);
         cardEffect.sprite = animationSprites[0];
         for (int i = 0; i < animationSprites.Length; i++)
@@ -699,7 +788,7 @@ public class CardInstance : SerializedMonoBehaviour, IPointerEnterHandler, IPoin
         }
         Debug.Log("Effect finished");
         cardEffect.gameObject.SetActive(false);
-   }
+    }
 
     public IEnumerator PlayEffect(Sprite[] animationSprites, GameObject target)
     {

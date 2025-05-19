@@ -41,6 +41,7 @@ public class ArmoredZombie : UndeadCard
         {
             GameManager.Instance.EnqueueActionMessage(specialMessageText);
             instanceOwner.TakeDamage(damageAbsorbed);
+            instanceOwner.StartCoroutine(damaged.PlayEffect(cardEffect));
             specialMessageText = $"{cardName} shields allies";
         }
     }

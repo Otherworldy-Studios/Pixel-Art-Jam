@@ -1,10 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using DG.Tweening;
 using Sirenix.Utilities;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static Utility;
 
 public class PlayerStats : MonoBehaviour
@@ -31,6 +33,7 @@ public class PlayerStats : MonoBehaviour
 
     public Camera Camera;
     public Canvas gameCanvas;
+    public GameObject damagePanel;
 
     [SerializeField] Transform[] thingsToShake;
 
@@ -39,6 +42,7 @@ public class PlayerStats : MonoBehaviour
     public string playerName;
     public void OnEnable()
     {
+        healthText = isPlayer ? GameManager.Instance.playerHealthText : GameManager.Instance.enemyHealthText;
         currentMana = maxMana;
         currentHealth = maxHealth;
     }
@@ -57,6 +61,7 @@ public class PlayerStats : MonoBehaviour
     {
         currentHealth -= damage;
         ShakeScreen();
+        StartCoroutine(DamageFlash());
         if (currentHealth <= 0)
         {
             Debug.Log("Game Over");
@@ -76,6 +81,20 @@ public class PlayerStats : MonoBehaviour
             thing.DOShakePosition(0.5f, 10, 20, 90);
         }
         
+    }
+
+    /// <summary>
+    /// Coroutine to briefly flash the card red when damaged.
+    /// </summary>
+    public IEnumerator DamageFlash()
+    {
+        if (damagePanel == null)
+        {
+            yield break;
+        }
+        damagePanel.SetActive(true);
+        yield return new WaitForSeconds(0.15f);
+        damagePanel?.SetActive(false);
     }
 
     public void AssignPositions()

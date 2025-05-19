@@ -18,6 +18,7 @@ public class GameManager : Singleton<GameManager>
     [Header("Card Data")]
     public List<CardSO> allCards;
     public List<CardSO> enemyCards;
+    public List<CardSO> playerCards;
     public List<CardInstance> board;
 
     // --- Board Transforms ---
@@ -38,6 +39,11 @@ public class GameManager : Singleton<GameManager>
     public Button attackButton;
     public Button specialButton;
     public Button discardButton;
+    public GameObject winCanvas;
+    public GameObject UICanvas;
+
+    public TMP_Text playerHealthText;
+    public TMP_Text enemyHealthText;
 
     // --- Game State ---
     [Header("Game State")]
@@ -55,11 +61,31 @@ public class GameManager : Singleton<GameManager>
     [Header("Prefabs")]
     public GameObject cardPrefab;
 
+    [Header("Combat Log UI")]
+    public Transform combatLogContainer;
+    public GameObject combatLogMessagePrefab;
+
+    private readonly List<GameObject> combatLogMessages = new();
+    private const int MaxCombatLogMessages = 3;
+    public float messageSpacing = 32f;
+    private float fadeDuration = 0.5f;
+
     // --- Events ---
     public event Action<CardInstance> OnCardPlayed;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        enemyCards = SceneCounter.Instance.sceneCount switch
+        {
+            1 => new List<CardSO>(SceneCounter.Instance.Enemy1Cards),
+            2 => new List<CardSO>(SceneCounter.Instance.Enemy2Cards),
+            3 => new List<CardSO>(SceneCounter.Instance.Enemy3Cards),
+            4 => new List<CardSO>(SceneCounter.Instance.Enemy4Cards),
+            _ => throw new ArgumentOutOfRangeException(),
+        };
+    }
     #endregion
-
     #region Card Play & Board Management
 
     /// <summary>
@@ -76,6 +102,7 @@ public class GameManager : Singleton<GameManager>
             if (OccupiedPlayerPositions >= playerBoardSide.Length)
             {
                 Debug.LogError("No more positions available on the player board");
+                card.moving = false;
                 yield break;
             }
             for (int i = 0; i < playerBoardSide.Length; i++)
@@ -234,7 +261,7 @@ public class GameManager : Singleton<GameManager>
         specialButton.onClick.RemoveAllListeners();
     }
 
-   
+
     private readonly Queue<string> actionMessageQueue = new();
     private bool isDisplayingActionMessage = false;
 
@@ -242,27 +269,54 @@ public class GameManager : Singleton<GameManager>
     /// <summary>
     /// Enqueue an action message to be displayed in sequence.
     /// </summary>
-    public void EnqueueActionMessage(string message, float delay = 0.2f)
+    public void EnqueueActionMessage(string message, float delay = 2f)
     {
-        actionMessageQueue.Enqueue(message);
-        if (!isDisplayingActionMessage)
-            StartCoroutine(ProcessActionMessageQueue(delay));
+        StartCoroutine(ProcessActionMessageQueue(message, delay));
     }
 
-    private IEnumerator ProcessActionMessageQueue(float delay)
+    private IEnumerator ProcessActionMessageQueue(string message, float delay)
     {
-        isDisplayingActionMessage = true;
-        while (actionMessageQueue.Count > 0)
+        GameObject msgObj = Instantiate(combatLogMessagePrefab, combatLogContainer);
+        TMP_Text msgText = msgObj.GetComponent<TMP_Text>();
+        msgText.text = message;
+        msgText.alpha = 1f;
+        msgObj.SetActive(true);
+
+
+        RectTransform msgRect = msgObj.GetComponent<RectTransform>();
+        msgRect.anchoredPosition = new Vector2(0, -messageSpacing * (combatLogMessages.Count));
+
+        combatLogMessages.Add(msgObj);
+
+
+        for (int i = 0; i < combatLogMessages.Count; i++)
         {
-            string message = actionMessageQueue.Dequeue();
-            actionMessage.text = message;
-            actionMessage.gameObject.SetActive(true);
-            yield return new WaitForSeconds(1f);
-            actionMessage.gameObject.SetActive(false);
-           
-            
+            RectTransform rect = combatLogMessages[i].GetComponent<RectTransform>();
+            rect.DOAnchorPosY(-messageSpacing * (combatLogMessages.Count - 1 - i), 0.2f);
         }
-        isDisplayingActionMessage = false;
+
+
+        if (combatLogMessages.Count > MaxCombatLogMessages)
+        {
+            GameObject oldest = combatLogMessages[0];
+            TMP_Text oldestText = oldest.GetComponent<TMP_Text>();
+            oldestText.DOFade(0, fadeDuration).OnComplete(() =>
+            {
+                Destroy(oldest);
+            });
+            combatLogMessages.RemoveAt(0);
+        }
+        yield return new WaitForSeconds(delay);
+        foreach (GameObject msg in combatLogMessages)
+        {
+            TMP_Text msgT = msg.GetComponent<TMP_Text>();
+            msgT.DOFade(0, fadeDuration).OnComplete(() =>
+            {
+                Destroy(msg);
+            });
+        }
+        combatLogMessages.Clear();
+        yield return null;
     }
 
     #endregion
@@ -360,6 +414,11 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    public void AddToAvailableCards(CardInstance card)
+    {
+        playerCards.Add(card.card);
+    }
+
     /// <summary>
     /// Handles game over logic.
     /// </summary>
@@ -372,7 +431,9 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-            SceneCounter.Instance.LoadNextScene();
+            winCanvas.SetActive(true);
+            UICanvas.SetActive(false);
+            Debug.Log("Game Over. Player has won.");
         }
     }
 

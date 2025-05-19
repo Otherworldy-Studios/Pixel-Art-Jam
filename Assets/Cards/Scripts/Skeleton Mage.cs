@@ -21,8 +21,8 @@ public class SkeletonMage : UndeadCard
         }
 
         target.ApplyStatusEffect(StatusEffects.LingeringDamage, 3);
-        specialMessageText = $"{cardName} applies lingering damage to {target.card.cardName} for 3 turns";
-       // instanceOwner.PlayEffect(cardEffect,target.gameObject);
+        specialMessageText = $"{cardName} does lingering damage to {target.card.cardName} for 3 turns";
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect, target.gameObject));
         return true;
     }
 

@@ -20,8 +20,9 @@ public class AcidZombie : UndeadCard
                 return false;
             }
         }
+        instanceOwner.StartCoroutine(instanceOwner.PlayEffect(cardEffect, target.gameObject));
         target.ApplyStatusEffect(StatusEffects.LingeringDamage, 6);
-        specialMessageText = $"{cardName} applies lingering damage to {target.card.cardName}";
+        specialMessageText = $"{cardName} does lingering damage to {target.card.cardName} for 6 turns";
         return true;
     }
     
